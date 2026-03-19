@@ -86,9 +86,6 @@ router.get('/', async (req, res) => {
     values.push(offset);
     query += ` OFFSET $${values.length}`;
 
-    console.log("QUERY:", query);
-    console.log("VALUES:", values);
-
     const result = await pool.query(query, values);
 
     res.json({
@@ -107,9 +104,10 @@ router.post('/', auth, async (req, res) => {
   try {
     // check recruiter + verification from DB
     const userCheck = await pool.query(
-      `SELECT role, is_verified 
-       FROM users 
-       WHERE id = $1`,
+      `SELECT u.role, c.verification_status
+      FROM users u
+      LEFT JOIN companies c ON c.user_id = u.id
+      WHERE u.id = $1`,
       [req.user.id]
     );
 
@@ -123,7 +121,7 @@ router.post('/', auth, async (req, res) => {
       return res.status(403).json({ message: "Only recruiters can post jobs" });
     }
 
-    if (!user.is_verified) {
+    if (user.verification_status !== "verified") {
       return res.status(403).json({ message: "Account not verified" });
     }
 

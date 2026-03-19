@@ -9,6 +9,7 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     const client = await pool.connect(); // for creating profile 
+    await client.query("BEGIN"); 
     const { email, password, role } = req.body;
   
     // check if email existed
@@ -48,7 +49,11 @@ router.post("/register", async (req, res) => {
       await client.query("COMMIT");
     }
   
-    res.send("Account created!")
+    res.send({ 
+      "email": email,
+      "role": (role) ? role : "job_seeker"
+    })
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
@@ -93,7 +98,9 @@ router.post("/login", async (req, res) => {
 
   res.json({
     access_token: accessToken,
-    refresh_token: refreshToken
+    refresh_token: refreshToken,
+    email: email,
+    role: user.role
   });
 });
 

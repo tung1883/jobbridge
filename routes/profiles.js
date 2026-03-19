@@ -10,14 +10,11 @@ const uploadLogo = require("../middleware/uploadLogo");
 // private API (user reads their own profile)
 router.get("/candidates/", auth, async (req, res) => {
   try {
-    const userId = req.user.id;
     const result = await pool.query(
-      `SELECT * FROM candidate_profiles
-       WHERE user_id = $1`,
-      [userId]
+      `SELECT * FROM candidate_profiles WHERE user_id = $1`,
+      [req.user.id]
     );
-
-    res.json(result.rows[0]);
+    res.json(result.rows[0] || {});
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
@@ -77,28 +74,18 @@ router.get("/candidates/:id", async (req, res) => {
 router.get('/companies/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
     const result = await pool.query(
-      `SELECT 
-         id,
-         name,
-         description,
-         website,
-         location
-       FROM companies
-       WHERE id = $1`,
+      `SELECT id, name, description, website, location, logo_url
+       FROM companies WHERE id = $1`,  // ← added logo_url
       [id]
     );
-
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Company not found" });
     }
-
     const company = result.rows[0];
     if (company.logo_url) {
-      company.logo_url = `${req.protocol}://${req.get('host')}/uploads/${company.logo_url}`;
+      company.logo_url = `${req.protocol}://${req.get('host')}${company.logo_url}`;
     }
-
     res.json(company);
   } catch (err) {
     console.error(err);
@@ -195,5 +182,18 @@ router.post("/companies/verify", auth, uploadVerification.array("documents", 5),
     }
   }
 );
+
+router.get("/companies", auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM companies WHERE user_id = $1`,
+      [req.user.id]
+    );
+    res.json(result.rows[0] || {});  // ← return {} instead of undefined
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
 
 module.exports  = router;
