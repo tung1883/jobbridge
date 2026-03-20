@@ -1,29 +1,19 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-require("dotenv").config();
+const { port }  = require('./config');
+const app       = require('./src/app');
+const logger    = require('./src/utils/log/logger');
 
-const authRoutes = require("./routes/auth");
-const jobRoutes = require("./routes/jobs");
-const appRoutes = require("./routes/applications");
-const profileRoutes = require("./routes/profiles")
-const cvRoutes = require("./routes/cv")
-const rankingRouter = require("./routes/ranking");
-const httpLogger = require("./utils/log/httpLogger");
+// require('./src/utils/cron');
 
-const app = express();
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(cors());
-app.use(express.json());
-app.use(httpLogger)
+app.listen(port, () => {
+  logger.info(`Server running on port ${port}`);
+});
 
-app.use("/auth", authRoutes);
-app.use("/ranking", rankingRouter);
-app.use("/jobs", jobRoutes);
-app.use("/applications", appRoutes);
-app.use("/profiles", profileRoutes);
-app.use("/cvs", cvRoutes)
+process.on('unhandledRejection', (err) => {
+  logger.error('Unhandled rejection', { error: err.message });
+  process.exit(1);
+});
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught exception', { error: err.message });
+  process.exit(1);
 });

@@ -1,4 +1,4 @@
-const { validate, schemas } = require('../../utils/validate');
+const { validate, schemas } = require('../../src/utils/validate');
 
 const mockReqRes = (body) => {
     const req  = { body };

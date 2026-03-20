@@ -1,4 +1,4 @@
-x## JobBridge
+## JobBridge
 - JobBridge is an online job recruitment website that connects job seekers with recruiters and companies:
     + job seekers can updoad their CV, search and apply for jobs
     + employers can post job openings, manage applicants

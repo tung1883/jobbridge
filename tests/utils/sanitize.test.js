@@ -1,4 +1,4 @@
-const { sanitizeString, sanitizeRequestBody, scrub } = require('../../utils/sanitize');
+const { sanitizeString, sanitizeRequestBody, scrub } = require('../../src/utils/sanitize');
 
 describe('sanitizeString()', () => {
     test('trims whitespace', () => {
