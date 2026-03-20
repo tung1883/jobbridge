@@ -4,7 +4,7 @@ const router = express.Router();
 
 const pool = require("../../config/db");
 const auth = require("../middleware/auth");
-const upload = require("../middleware/uploadCV");
+const upload = require("../middleware/upload/uploadCV");
 
 router.post("/", auth, upload.single("cv"), async (req, res) => {
   try {

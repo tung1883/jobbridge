@@ -5,6 +5,7 @@ const pool    = require('../../config/db');
 // helper to register a user
 const registerUser = (data = {}) => request(app)
   .post('/api/v1/auth/register')
+  .set('User-Agent', 'Jest Test Runner')
   .send({
     email:    'john@test.com',
     password: 'Password1!',
@@ -15,10 +16,12 @@ const registerUser = (data = {}) => request(app)
 // helper to login
 const loginUser = (data = {}) => request(app)
   .post('/api/v1/auth/login')
+  .set('User-Agent', 'Jest Test Runner')
   .send({
     email:    'john@test.com',
     password: 'Password1!',
     ...data,
+    
   });
 
 // clean DB between tests
@@ -29,8 +32,7 @@ afterEach(async () => {
   await pool.query('DELETE FROM users');
 });
 
-// ─── register ────────────────────────────────────────────────
-
+// ─── register 
 describe('POST /auth/register', () => {
   test('registers job_seeker and returns 201', async () => {
     const res = await registerUser();
@@ -93,7 +95,6 @@ describe('POST /auth/register', () => {
 });
 
 // ─── login ───────────────────────────────────────────────────
-
 describe('POST /auth/login', () => {
   beforeEach(async () => {
     await registerUser();
@@ -141,6 +142,7 @@ describe('POST /auth/login', () => {
   test('returns 400 if fields missing', async () => {
     const res = await request(app)
       .post('/api/v1/auth/login')
+      .set('User-Agent', 'Jest Test Runner')
       .send({ email: 'john@test.com' });
     expect(res.statusCode).toBe(400);
   });
@@ -159,6 +161,7 @@ describe('POST /auth/refresh', () => {
   test('returns new access token with valid refresh token', async () => {
     const res = await request(app)
       .post('/api/v1/auth/refresh')
+      .set('User-Agent', 'Jest Test Runner')
       .send({ refresh_token: refreshToken });
     expect(res.statusCode).toBe(200);
     expect(res.body.access_token).toBeDefined();
@@ -167,6 +170,7 @@ describe('POST /auth/refresh', () => {
   test('returns 401 if no refresh token provided', async () => {
     const res = await request(app)
       .post('/api/v1/auth/refresh')
+      .set('User-Agent', 'Jest Test Runner')
       .send({});
     expect(res.statusCode).toBe(401);
     expect(res.body.error).toBe('No refresh token provided');
@@ -175,6 +179,7 @@ describe('POST /auth/refresh', () => {
   test('returns 401 if refresh token is invalid', async () => {
     const res = await request(app)
       .post('/api/v1/auth/refresh')
+      .set('User-Agent', 'Jest Test Runner')
       .send({ refresh_token: 'invalidtoken' });
     expect(res.statusCode).toBe(401);
     expect(res.body.error).toBe('Invalid refresh token');
@@ -188,11 +193,13 @@ describe('POST /auth/refresh', () => {
 
     await request(app)
       .post('/api/v1/auth/logout')
+      .set('User-Agent', 'Jest Test Runner')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refresh_token: token });
 
     const res = await request(app)
       .post('/api/v1/auth/refresh')
+      .set('User-Agent', 'Jest Test Runner')
       .send({ refresh_token: token });
 
     expect(res.statusCode).toBe(401);
@@ -215,6 +222,7 @@ describe('POST /auth/logout', () => {
   test('logs out and revokes refresh token', async () => {
     const res = await request(app)
       .post('/api/v1/auth/logout')
+      .set('User-Agent', 'Jest Test Runner')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refresh_token: refreshToken });
 
@@ -234,6 +242,7 @@ describe('POST /auth/logout', () => {
   test('returns 401 if no access token provided', async () => {
     const res = await request(app)
       .post('/api/v1/auth/logout')
+      .set('User-Agent', 'Jest Test Runner')
       .send({ refresh_token: refreshToken });
     expect(res.statusCode).toBe(401);
   });
@@ -241,6 +250,7 @@ describe('POST /auth/logout', () => {
   test('logs out successfully even without refresh token in body', async () => {
     const res = await request(app)
       .post('/api/v1/auth/logout')
+      .set('User-Agent', 'Jest Test Runner')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({});
     expect(res.statusCode).toBe(200);

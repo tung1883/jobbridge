@@ -3,25 +3,49 @@ const router = express.Router();
 
 const pool = require("../../config/db");
 const auth = require("../middleware/auth");
-const uploadVerification = require("../middleware/uploadVerification");
-const uploadLogo = require("../middleware/uploadLogo");
+const uploadVerification = require("../middleware/upload/uploadVerification");
+const uploadLogo = require("../middleware/upload/uploadLogo");
+const checkRole = require("../middleware/checkRole");
 
-// 1. job-seeker
-// private API (user reads their own profile)
-router.get("/candidates/", auth, async (req, res) => {
+// routes: 
+// GET /api/v1/profiles/candidates/my
+// PUT /api/v1/profiles/candidates/
+// GET /api/v1/profiles/candidates/:id
+// GET /api/v1/profiles/companies/:id
+// PUT /api/v1/profiles/companies
+// PUT /api/v1/profiles/companies/logo
+// POST /api/v1/profiles/companies/verify
+// GET /api/v1/profiles/companies/my (for recruiter to view their own company profile)
+
+// ---- 1. job-seeker --------------------
+
+// GET /candidates/my:
+// 1. verify access token and get user info from it -> if error, return 401
+// 2. query candidate_profiles table with user_id -> if error, return 500
+// 3. return output = {id, full_name, location, summary}
+router.get("/candidates/my", auth, checkRole('job_seeker'), async (req, res, next) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM candidate_profiles WHERE user_id = $1`,
+      `SELECT full_name, location, summary FROM candidate_profiles WHERE user_id = $1`,
       [req.user.id]
     );
-    res.json(result.rows[0] || {});
+
+    if (!result.rows[0]) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
+    next(err);
   }
 });
 
-router.put("/candidates/", auth, async (req, res) => {
+// PUT /candidates/:
+// 1. verify access token and get user info from it -> if error, return 401
+// 2. take input = {full_name, location, summary} (all optional)
+// 3. update candidate_profiles table with user_id -> if error, return 500
+// 4. return output = {id, full_name, location, summary}
+router.put("/candidates/", auth, checkRole('job_seeker'), async (req, res, next) => {
   try {
     const userId = req.user.id;
     const result = await pool.query(
@@ -36,8 +60,7 @@ router.put("/candidates/", auth, async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
+    next(err);
   }
 });
 
@@ -70,13 +93,128 @@ router.get("/candidates/:id", async (req, res) => {
   }
 });
 
-// job-seeker
+// ---- 2. recruiter --------------------
+router.put("/companies", auth, checkRole('recruiter'), async (req, res) => {
+  try {
+    const { name, description, website, location } = req.body;
+    const result = await pool.query(
+      `UPDATE companies
+      SET name = COALESCE(NULLIF($1,''), name),
+      description = COALESCE(NULLIF($2,''), description),
+      website = COALESCE(NULLIF($3,''), website),
+      location = COALESCE(NULLIF($4,''), location)
+      WHERE user_id = $5
+      RETURNING *`,
+      [name, description, website, location, req.user.id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Company not found" });
+    }
+    
+    res.json(result.rows[0]);
+    
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
+router.put("/companies/logo", auth, checkRole('recruiter'), uploadLogo.single("logo"), async (req, res) => {
+  try {
+    const logoUrl = `/uploads/logos/${req.file.filename}`;
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    await pool.query(
+      `UPDATE companies SET logo_url=$1 WHERE user_id=$2`,
+      [logoUrl, req.user.id]
+    );
+    
+    res.json({ logoUrl });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server error");
+  }
+});
+
+router.post("/companies/verify", auth, checkRole('recruiter'), uploadVerification.array("documents", 5), async (req, res) => {
+  try {
+    const files = req.files;
+    
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
+    }
+    
+    if (files.length > 5) {
+      return res.status(400).json({ error: "Maximum number of files is 5"})
+      }
+      
+      const company = await pool.query(
+        `SELECT id FROM companies WHERE user_id=$1`,
+        [req.user.id]
+      );
+
+      if (company.rows.length === 0) {
+        return res.status(404).json({ error: "Company not found" });
+      }
+      
+      const companyId = company.rows[0].id;
+      const insertedDocs = [];
+      
+      // for (const file of files) {
+      //   const filePath = `/uploads/verification_docs/${file.filename}`;
+        
+      //   const result = await pool.query(
+      //     `INSERT INTO company_verification_documents
+      //     (company_id, file_path)
+      //     VALUES ($1,$2)
+      //     RETURNING *`,
+      //     [companyId, filePath]
+      //   );
+        
+      //   insertedDocs.push(result.rows[0]);
+      // }
+
+      // res.json(insertedDocs);
+
+      const values  = files.map((file, i) => `($1, $${i + 2})`).join(', ');
+      const paths   = files.map(f => `/uploads/verification_docs/${f.filename}`);
+      const result  = await pool.query(
+        `INSERT INTO company_verification_documents(company_id, file_path)
+        VALUES ${values} RETURNING *`,
+        [companyId, ...paths]
+      );
+
+      res.status(201).json(result.rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server error");
+    }
+  }
+);
+
+router.get("/companies/my", auth, checkRole('recruiter'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, description, website, location, logo_url, verification_status FROM companies WHERE user_id = $1`,
+      [req.user.id]
+    );
+    res.json(result.rows[0] || {});
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
 router.get('/companies/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
       `SELECT id, name, description, website, location, logo_url
-       FROM companies WHERE id = $1`,  // ← added logo_url
+       FROM companies WHERE id = $1`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -90,109 +228,6 @@ router.get('/companies/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
-  }
-});
-
-router.put("/companies", auth, async (req, res) => {
-  try {
-    const { name, description, website, location } = req.body;
-    console.log(req.user.id)
-    const result = await pool.query(
-      `UPDATE companies
-       SET name = COALESCE(NULLIF($1,''), name),
-           description = COALESCE(NULLIF($2,''), description),
-           website = COALESCE(NULLIF($3,''), website),
-           location = COALESCE(NULLIF($4,''), location)
-       WHERE user_id = $5
-       RETURNING *`,
-      [name, description, website, location, req.user.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Company not found" });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
-  }
-});
-
-router.put("/companies/logo", auth, uploadLogo.single("logo"), async (req, res) => {
-  try {
-    const logoUrl = `/uploads/logos/${req.file.filename}`;
-  
-    await pool.query(
-      `UPDATE companies SET logo_url=$1 WHERE user_id=$2`,
-      [logoUrl, req.user.id]
-    );
-  
-    res.json({ logoUrl });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Server error");
-  }
-});
-
-router.post("/companies/verify", auth, uploadVerification.array("documents", 5),
-  async (req, res) => {
-    try {
-      const files = req.files;
-
-      if (!files || files.length === 0) {
-        return res.status(400).json({ error: "No files uploaded" });
-      }
-
-      if (files.length > 5) {
-        return res.status(400).json({ error: "Maximum number of files is 5"})
-      }
-
-      const company = await pool.query(
-        `SELECT id FROM companies WHERE user_id=$1`,
-        [req.user.id]
-      );
-
-      if (company.rows.length === 0) {
-        return res.status(404).json({ error: "Company not found" });
-      }
-
-      const companyId = company.rows[0].id;
-      const insertedDocs = [];
-
-      for (const file of files) {
-        const filePath = `/uploads/verification_docs/${file.filename}`;
-
-        const result = await pool.query(
-          `INSERT INTO company_verification_documents
-           (company_id, file_path)
-           VALUES ($1,$2)
-           RETURNING *`,
-          [companyId, filePath]
-        );
-
-        insertedDocs.push(result.rows[0]);
-      }
-
-      res.json(insertedDocs);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-router.get("/companies", auth, async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM companies WHERE user_id = $1`,
-      [req.user.id]
-    );
-    res.json(result.rows[0] || {});  // ← return {} instead of undefined
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
   }
 });
 

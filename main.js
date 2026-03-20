@@ -5,7 +5,7 @@ const logger    = require('./src/utils/log/logger');
 // require('./src/utils/cron');
 
 app.listen(port, () => {
-  logger.info(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 process.on('unhandledRejection', (err) => {
