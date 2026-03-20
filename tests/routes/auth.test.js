@@ -4,7 +4,7 @@ const pool    = require('../../config/db');
 
 // helper to register a user
 const registerUser = (data = {}) => request(app)
-  .post('/api/auth/register')
+  .post('/api/v1/auth/register')
   .send({
     email:    'john@test.com',
     password: 'Password1!',
@@ -14,7 +14,7 @@ const registerUser = (data = {}) => request(app)
 
 // helper to login
 const loginUser = (data = {}) => request(app)
-  .post('/api/auth/login')
+  .post('/api/v1/auth/login')
   .send({
     email:    'john@test.com',
     password: 'Password1!',
@@ -27,10 +27,6 @@ afterEach(async () => {
   await pool.query('DELETE FROM candidate_profiles');
   await pool.query('DELETE FROM companies');
   await pool.query('DELETE FROM users');
-});
-
-afterAll(async () => {
-  await pool.end();
 });
 
 // ─── register ────────────────────────────────────────────────
@@ -144,14 +140,13 @@ describe('POST /auth/login', () => {
 
   test('returns 400 if fields missing', async () => {
     const res = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: 'john@test.com' });
     expect(res.statusCode).toBe(400);
   });
 });
 
 // ─── refresh ─────────────────────────────────────────────────
-
 describe('POST /auth/refresh', () => {
   let refreshToken;
 
@@ -163,7 +158,7 @@ describe('POST /auth/refresh', () => {
 
   test('returns new access token with valid refresh token', async () => {
     const res = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v1/auth/refresh')
       .send({ refresh_token: refreshToken });
     expect(res.statusCode).toBe(200);
     expect(res.body.access_token).toBeDefined();
@@ -171,7 +166,7 @@ describe('POST /auth/refresh', () => {
 
   test('returns 401 if no refresh token provided', async () => {
     const res = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v1/auth/refresh')
       .send({});
     expect(res.statusCode).toBe(401);
     expect(res.body.error).toBe('No refresh token provided');
@@ -179,7 +174,7 @@ describe('POST /auth/refresh', () => {
 
   test('returns 401 if refresh token is invalid', async () => {
     const res = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v1/auth/refresh')
       .send({ refresh_token: 'invalidtoken' });
     expect(res.statusCode).toBe(401);
     expect(res.body.error).toBe('Invalid refresh token');
@@ -192,12 +187,12 @@ describe('POST /auth/refresh', () => {
     const accessToken = loginRes.body.access_token;
 
     await request(app)
-      .post('/api/auth/logout')
+      .post('/api/v1/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refresh_token: token });
 
     const res = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v1/auth/refresh')
       .send({ refresh_token: token });
 
     expect(res.statusCode).toBe(401);
@@ -206,7 +201,6 @@ describe('POST /auth/refresh', () => {
 });
 
 // ─── logout ──────────────────────────────────────────────────
-
 describe('POST /auth/logout', () => {
   let accessToken;
   let refreshToken;
@@ -220,7 +214,7 @@ describe('POST /auth/logout', () => {
 
   test('logs out and revokes refresh token', async () => {
     const res = await request(app)
-      .post('/api/auth/logout')
+      .post('/api/v1/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refresh_token: refreshToken });
 
@@ -239,14 +233,14 @@ describe('POST /auth/logout', () => {
 
   test('returns 401 if no access token provided', async () => {
     const res = await request(app)
-      .post('/api/auth/logout')
+      .post('/api/v1/auth/logout')
       .send({ refresh_token: refreshToken });
     expect(res.statusCode).toBe(401);
   });
 
   test('logs out successfully even without refresh token in body', async () => {
     const res = await request(app)
-      .post('/api/auth/logout')
+      .post('/api/v1/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({});
     expect(res.statusCode).toBe(200);

@@ -4,7 +4,7 @@ const path           = require('path');
 const helmet         = require('helmet');
 const httpLogger     = require('./utils/log/httpLogger');
 const { defaultLimiter } = require('./middleware/rateLimiter');
-const { sanitizeRequestsBody }   = require('./utils/sanitize');
+const { sanitizeRequestBody }   = require('./utils/sanitize');
 const errorHandler   = require('./middleware/errorHandler');
 
 const authRoutes     = require('./routes/auth');
@@ -21,18 +21,18 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../uploads')));
 app.use(express.json());
 app.use((req, res, next) => {
-  req.body = sanitizeRequestsBody(req.body);
+  req.body = sanitizeRequestBody(req.body);
   next();
 });
 app.use(httpLogger);
 app.use(defaultLimiter);
 
-app.use('/auth',         authRoutes);
-app.use('/ranking',      rankingRouter);
-app.use('/jobs',         jobRoutes);
-app.use('/applications', appRoutes);
-app.use('/profiles',     profileRoutes);
-app.use('/cvs',          cvRoutes);
+app.use('/api/v1/auth',         authRoutes);
+app.use('/api/v1/ranking',      rankingRouter);
+app.use('/api/v1/jobs',         jobRoutes);
+app.use('/api/v1/applications', appRoutes);
+app.use('/api/v1/profiles',     profileRoutes);
+app.use('/api/v1/cvs',          cvRoutes);
 
 app.use(errorHandler);
 

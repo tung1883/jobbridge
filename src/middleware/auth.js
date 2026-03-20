@@ -1,6 +1,6 @@
 // middleware/auth.js
 const jwt = require('jsonwebtoken');
-const { jwt: jwtConfig } = require('../../config/index');
+const { jwt: jwtConfig } = require('../../config');
 const VALID_ROLES = ['job_seeker', 'recruiter', 'admin'];
 
 module.exports = (req, res, next) => {

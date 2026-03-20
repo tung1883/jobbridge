@@ -1,8 +1,6 @@
 const jwt = require('jsonwebtoken');
 const auth = require('../../src/middleware/auth');  
-
-process.env.JWT_SECRET = 'testsecret';       
-const JWT_SECRET = process.env.JWT_SECRET;  
+const { jwt: jwtConfig } = require('../../config/index');
 
 const mockReqRes = (authHeader) => {
     const req  = { headers: { authorization: authHeader } };
@@ -16,7 +14,7 @@ const mockReqRes = (authHeader) => {
 
 describe('auth middleware', () => {
     test('calls next() with valid token', () => {
-        const token = jwt.sign({ id: 1, role: 'job_seeker' }, JWT_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ id: 1, role: 'job_seeker' }, jwtConfig.secret, { expiresIn: '15m' });
         const { req, res, next } = mockReqRes(`Bearer ${token}`);
         auth(req, res, next);
         expect(next).toHaveBeenCalled();
@@ -40,7 +38,7 @@ describe('auth middleware', () => {
     });
 
     test('returns 401 if token is expired', () => {
-        const token = jwt.sign({ id: 1, role: 'job_seeker' }, JWT_SECRET, { expiresIn: '-1s' });
+        const token = jwt.sign({ id: 1, role: 'job_seeker' }, jwtConfig.secret, { expiresIn: '-1s' });
         const { req, res, next } = mockReqRes(`Bearer ${token}`);
         auth(req, res, next);
         expect(res.status).toHaveBeenCalledWith(401);
@@ -57,7 +55,7 @@ describe('auth middleware', () => {
     });
 
     test('returns 401 if token does not start with Bearer', () => {
-        const token = jwt.sign({ id: 1, role: 'job_seeker' }, JWT_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ id: 1, role: 'job_seeker' }, jwtConfig.secret, { expiresIn: '15m' });
         const { req, res, next } = mockReqRes(token);
         auth(req, res, next);
         expect(res.status).toHaveBeenCalledWith(401);
@@ -82,7 +80,7 @@ describe('auth middleware', () => {
     });
 
     test('returns 401 if token has extra spaces', () => {
-        const token = jwt.sign({ id: 1, role: 'job_seeker' }, JWT_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ id: 1, role: 'job_seeker' }, jwtConfig.secret, { expiresIn: '15m' });
         const { req, res, next } = mockReqRes(`Bearer   ${token}  `);
         auth(req, res, next);
         expect(res.status).toHaveBeenCalledWith(401);

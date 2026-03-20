@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 const { jwt: jwtConfig } = require('../../config/index');
 const pool = require("../../config/db");
 const { validate, schemas } = require('../utils/validate');
-const { logger } = require('../utils/log/logger');
 const { toPostgresInterval } = require('../utils/jwt');
 const  auth = require('../../src/middleware/auth')
 
@@ -210,6 +209,11 @@ router.post("/refresh", async (req, res) => {
   }
 });
 
+// POST /auth/logout: {refresh_token} -> {message}
+// 1. take input = {refresh_token} and access token in header
+// 2. verify access token and get user info from it -> if error, return 401
+// 3. hash the incoming refresh token and set revoked=true in DB for that token -> if error, return 500
+// 4. return output = {message: "Logged out"}
 router.post("/logout", auth, async (req, res) => {
   try {
     const { refresh_token } = req.body;
