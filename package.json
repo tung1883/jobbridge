@@ -6,10 +6,10 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production  node main.js",
     "dev": "cross-env NODE_ENV=development nodemon main.js",
-    "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit",
+    "test": "cross-env NODE_ENV=test jest",
     "test:watch": "cross-env NODE_ENV=test jest --watchAll",
     "test:cover": "cross-env NODE_ENV=test jest --coverage",
-    "gendocs": "node utils/generateDBDocs.js"
+    "gendocs": "node docs/generateDBDocs.js && node docs/generateApiDocs.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-list-endpoints": "^7.1.1",
     "express-rate-limit": "^8.3.1",
     "helmet": "^8.1.0",
     "joi": "^18.0.2",
@@ -37,6 +38,8 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"]
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ]
   }
 }

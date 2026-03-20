@@ -1,5 +1,5 @@
 # Database Documentation
-> Auto-generated on 2026-03-20T10:54:14.314Z
+> Auto-generated on 2026-03-20T13:06:22.020Z
 
 ---
 
@@ -222,6 +222,7 @@
 | token      | text      | NO       | -                                          |
 | expires_at | timestamp | NO       | -                                          |
 | created_at | timestamp | YES      | now()                                      |
+| revoked    | bool      | YES      | false                                      |
 
 ### Primary Key
 - `id`
