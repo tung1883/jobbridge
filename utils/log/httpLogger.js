@@ -1,5 +1,5 @@
-const logger = require('../utils/logger');
-const { scrub } = require('../utils/sanitize');
+const logger = require('../utils/log/logger');
+const { scrub } = require('../sanitize');
 
 const httpLogger = (req, res, next) => {
     const start = Date.now();

@@ -9,13 +9,13 @@ const appRoutes = require("./routes/applications");
 const profileRoutes = require("./routes/profiles")
 const cvRoutes = require("./routes/cv")
 const rankingRouter = require("./routes/ranking");
-const logger = require("./middleware/httpLogger");
+const httpLogger = require("./utils/log/httpLogger");
 
 const app = express();
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors());
 app.use(express.json());
-app.use(logger)
+app.use(httpLogger)
 
 app.use("/auth", authRoutes);
 app.use("/ranking", rankingRouter);

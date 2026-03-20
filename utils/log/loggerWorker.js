@@ -1,7 +1,7 @@
 const { parentPort } = require('worker_threads');
 const winston = require('winston');
 const { combine, timestamp, colorize, printf, json } = winston.format;
-const { scrub } = require('./sanitize');
+const { scrub } = require('../sanitize');
 
 const httpFormat = printf(({ timestamp, method, url, status, duration, ip, userAgent }) => {
     return `[${timestamp}] ${method} ${url} ${status} - ${duration} | IP: ${ip} | ${userAgent}`;
