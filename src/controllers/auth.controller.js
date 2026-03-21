@@ -11,7 +11,7 @@ const register = async (req, res, next) => {
     const user = await registerUser(req.body);
     logger.info('User registered', { userId: user.id, email: user.email });
     res.status(201).json({ email: user.email, role: user.role });
-  } catch (err) {
+  } catch (err) { 
     if (err.status) {
       return res.status(err.status).json({ error: err.message });
     }
@@ -30,8 +30,10 @@ const login = async (req, res, next) => {
       if (err.status === 401) {
         logger.warn('Failed login attempt', { email: req.body.email });
       }
+
       return res.status(err.status).json({ error: err.message });
     }
+    
     err.context = { email: req.body.email };
     next(err);
   }

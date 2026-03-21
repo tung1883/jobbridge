@@ -6,9 +6,10 @@ const httpFormat = printf(({ timestamp, method, url, status, duration, ip, userA
     return `[${timestamp}] ${method} ${url} ${status} - ${duration} | IP: ${ip} | ${userAgent}`;
 });
 
-const appFormat = printf(({ timestamp, level, message }) => {
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
-});
+const appFormat = printf(({ timestamp, level, message, ...meta }) => {
+    const metaString = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : ""
+    return `[${timestamp}] ${level}: ${message}${metaString}`
+})
 
 const chooseFormat = printf((info) => {
     if (info.method && info.url) {
@@ -21,25 +22,33 @@ const chooseFormat = printf((info) => {
 const logger = winston.createLogger({
     transports: [
         new winston.transports.Console({
-            format: combine(timestamp(), colorize(), chooseFormat),
+            format: combine(
+                timestamp(),
+                winston.format((info) => {
+                    info.level = info.level.toUpperCase()
+                    return info
+                })(),
+                colorize(),
+                chooseFormat,
+            ),
         }),
         new winston.transports.File({
-            filename: 'logs/requests.log',
-            level: 'info',
+            filename: "logs/requests.log",
+            level: "info",
             format: combine(timestamp(), json()),
         }),
         new winston.transports.File({
-            filename: 'logs/errors.log',
-            level: 'error',
+            filename: "logs/errors.log",
+            level: "error",
             format: combine(timestamp(), json()),
         }),
         new winston.transports.File({
-            filename: 'logs/warns.log',
-            level: 'warn',
+            filename: "logs/warns.log",
+            level: "warn",
             format: combine(timestamp(), json()),
-        })
-    ]
-});
+        }),
+    ],
+})
 
 parentPort.on('message', ({ level, message, meta }) => {
     logger[level](message, meta);

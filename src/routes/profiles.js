@@ -1,16 +1,28 @@
-const express = require("express");
-const router = express.Router();
+const express = require("express")
+const router = express.Router()
 
-const pool = require("../../config/db");
-const auth = require("../middleware/auth");
-const uploadVerification = require("../middleware/upload/uploadVerification");
-const uploadLogo = require("../middleware/upload/uploadLogo");
-const checkRole = require("../middleware/checkRole");
+const auth = require("../middleware/auth")
+const { uploadVerficationDocumentsMiddleware } = require("../middleware/upload/uploadVerification")
+const { uploadLogoMiddleware } = require("../middleware/upload/uploadLogo")
+const checkRole = require("../middleware/checkRole")
+const {
+    getMyCandidateProfile,
+    updateMyCandidateProfile,
+    readCandidateProfileById,
+    updateCompanyProfile,
+    updateCompanyLogo,
+    uploadCompanyVerificationDocs,
+    getMyCompanyProfile,
+    getCompanyProfileById,
+} = require("../controllers/profiles.controller")
 
-// routes: 
+// routes:
+// ---- 1. job-seeker --------------------
 // GET /api/v1/profiles/candidates/my
 // PUT /api/v1/profiles/candidates/
 // GET /api/v1/profiles/candidates/:id
+//
+// ---- 2. recruiter --------------------
 // GET /api/v1/profiles/companies/:id
 // PUT /api/v1/profiles/companies
 // PUT /api/v1/profiles/companies/logo
@@ -23,212 +35,64 @@ const checkRole = require("../middleware/checkRole");
 // 1. verify access token and get user info from it -> if error, return 401
 // 2. query candidate_profiles table with user_id -> if error, return 500
 // 3. return output = {id, full_name, location, summary}
-router.get("/candidates/my", auth, checkRole('job_seeker'), async (req, res, next) => {
-  try {
-    const result = await pool.query(
-      `SELECT full_name, location, summary FROM candidate_profiles WHERE user_id = $1`,
-      [req.user.id]
-    );
-
-    if (!result.rows[0]) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    next(err);
-  }
-});
+router.get("/candidates/my", auth, checkRole("job_seeker"), getMyCandidateProfile)
 
 // PUT /candidates/:
 // 1. verify access token and get user info from it -> if error, return 401
 // 2. take input = {full_name, location, summary} (all optional)
 // 3. update candidate_profiles table with user_id -> if error, return 500
 // 4. return output = {id, full_name, location, summary}
-router.put("/candidates/", auth, checkRole('job_seeker'), async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const result = await pool.query(
-      `UPDATE candidate_profiles
-      SET full_name = COALESCE($1, full_name),
-          location = COALESCE($2, location),
-          summary = COALESCE($3, summary)
-      WHERE user_id = $4
-      RETURNING *`,
-      [req.body.full_name, req.body.location, req.body.summary, userId]
-    );
+router.put("/candidates/", auth, checkRole("job_seeker"), updateMyCandidateProfile)
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// public API (the way the public reads profile)
-router.get("/candidates/:id", async (req, res) => {
-  try {
-    const profileId = req.params.id;
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-    if (!uuidRegex.test(profileId)) {
-      return res.status(404).json({ error: "Profile not found" });
-    }
-
-    const result = await pool.query(
-      `SELECT id, full_name, location, summary
-       FROM candidate_profiles
-       WHERE id=$1`,
-      [profileId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Profile not found" });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
-  }
-});
+// GET /candidates/:id: (public API for recruiter to view candidate profile)
+// input: profile id in URL path, output: {id, full_name, location, summary}
+// 1. validate profile UUID -> if invalid, return 404 with json { error: "Profile not found" }
+// 2. query candidate_profiles table with id
+//  -> if not found, return 404 with json { error: "Profile not found" }, if error, return 500
+// 3. return output = {id, full_name, location, summary}
+router.get("/candidates/:id", readCandidateProfileById)
 
 // ---- 2. recruiter --------------------
-router.put("/companies", auth, checkRole('recruiter'), async (req, res) => {
-  try {
-    const { name, description, website, location } = req.body;
-    const result = await pool.query(
-      `UPDATE companies
-      SET name = COALESCE(NULLIF($1,''), name),
-      description = COALESCE(NULLIF($2,''), description),
-      website = COALESCE(NULLIF($3,''), website),
-      location = COALESCE(NULLIF($4,''), location)
-      WHERE user_id = $5
-      RETURNING *`,
-      [name, description, website, location, req.user.id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Company not found" });
-    }
-    
-    res.json(result.rows[0]);
-    
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
-  }
-});
+// PUT /companies:
+// 1. verify access token and get user info from it -> if error, return 401
+// 2. check if user role is recruiter -> if not, return 403
+// 3. take input = {name, description, website, location} (all optional)
+// 4. update companies table with user_id -> if error, return 404 with json { error: "Company not found"} or 500
+// 5. return output = { name, verfication_status, description, website, location }
+// *note: to update logo, use separate endpoint PUT /companies/logo
+router.put("/companies", auth, checkRole("recruiter"), updateCompanyProfile) // implemented in controllers/profiles.controller.js
 
-router.put("/companies/logo", auth, checkRole('recruiter'), uploadLogo.single("logo"), async (req, res) => {
-  try {
-    const logoUrl = `/uploads/logos/${req.file.filename}`;
-    
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
+// PUT /companies/logo:
+// 1. verify access token and get user info from it -> if error, return 401
+// 2. check if user role is recruiter -> if not, return 403
+// 3. take input = form-data with key "logo" and value is the image file
+// 4. save the uploaded file to disk and get the file path -> if error, return 400 with json { error: "No file uploaded" } or 500
+// 5. update companies table with logo_url = file path -> if error, return 404 with json { error: "Company not found"} or 500
+// 6. return output = { logoUrl }
+router.put("/companies/logo", auth, checkRole("recruiter"), uploadLogoMiddleware, updateCompanyLogo)
 
-    await pool.query(
-      `UPDATE companies SET logo_url=$1 WHERE user_id=$2`,
-      [logoUrl, req.user.id]
-    );
-    
-    res.json({ logoUrl });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Server error");
-  }
-});
+// POST /companies/verify:
+// 1. verify access token and get user info from it -> if error, return 401
+// 2. check if user role is recruiter -> if not, return 403
+// 3. take input = form-data with key "documents" and value is an array of image files (max 5 files)
+// 4. save the uploaded files to disk and get the file paths -> if error, return 400 with json { error: "No files uploaded" } or { error: "Maximum number of files is 5"} or 500
+// 5. insert a new record into company_verification_documents table for each uploaded file with company_id (get from companies table using user_id) and file_path -> if error, return 404 with json { error: "Company not found"} or 500
+// 6. return output = [{ id, company_id, file_path, uploaded_at }]
+router.post("/companies/verify", auth, checkRole("recruiter"), uploadVerficationDocumentsMiddleware, uploadCompanyVerificationDocs)
 
-router.post("/companies/verify", auth, checkRole('recruiter'), uploadVerification.array("documents", 5), async (req, res) => {
-  try {
-    const files = req.files;
-    
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No files uploaded" });
-    }
-    
-    if (files.length > 5) {
-      return res.status(400).json({ error: "Maximum number of files is 5"})
-      }
-      
-      const company = await pool.query(
-        `SELECT id FROM companies WHERE user_id=$1`,
-        [req.user.id]
-      );
+// GET /companies/my:
+// 1. verify access token and get user info from it -> if error, return 401
+// 2. check if user role is recruiter -> if not, return 403
+// 3. query companies table with user_id -> if error, return 500
+// 4. return output = {id, name, description, website, location, logo_url, verification_status}
+router.get("/companies/my", auth, checkRole("recruiter"), getMyCompanyProfile)
 
-      if (company.rows.length === 0) {
-        return res.status(404).json({ error: "Company not found" });
-      }
-      
-      const companyId = company.rows[0].id;
-      const insertedDocs = [];
-      
-      // for (const file of files) {
-      //   const filePath = `/uploads/verification_docs/${file.filename}`;
-        
-      //   const result = await pool.query(
-      //     `INSERT INTO company_verification_documents
-      //     (company_id, file_path)
-      //     VALUES ($1,$2)
-      //     RETURNING *`,
-      //     [companyId, filePath]
-      //   );
-        
-      //   insertedDocs.push(result.rows[0]);
-      // }
+// GET /companies/:id: (public API for job-seeker to view company profile)
+// input: company id in URL path, output: {id, name, description, website, location, logo_url}
+// 1. validate company UUID -> if invalid, return 404 with json { error: "Company not found" }
+// 2. query companies table with id
+//  -> if not found, return 404 with json { error: "Company not found" }, if error, return 500
+// 3. return output = {id, name, description, website, location, logo_url}
+router.get("/companies/:id", getCompanyProfileById)
 
-      // res.json(insertedDocs);
-
-      const values  = files.map((file, i) => `($1, $${i + 2})`).join(', ');
-      const paths   = files.map(f => `/uploads/verification_docs/${f.filename}`);
-      const result  = await pool.query(
-        `INSERT INTO company_verification_documents(company_id, file_path)
-        VALUES ${values} RETURNING *`,
-        [companyId, ...paths]
-      );
-
-      res.status(201).json(result.rows);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-router.get("/companies/my", auth, checkRole('recruiter'), async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT id, name, description, website, location, logo_url, verification_status FROM companies WHERE user_id = $1`,
-      [req.user.id]
-    );
-    res.json(result.rows[0] || {});
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
-  }
-});
-
-router.get('/companies/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query(
-      `SELECT id, name, description, website, location, logo_url
-       FROM companies WHERE id = $1`,
-      [id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Company not found" });
-    }
-    const company = result.rows[0];
-    if (company.logo_url) {
-      company.logo_url = `${req.protocol}://${req.get('host')}${company.logo_url}`;
-    }
-    res.json(company);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-module.exports  = router;
+module.exports = router
