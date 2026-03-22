@@ -24,6 +24,8 @@ JobBridge allows:
 
 ### Installation
 ```bash
+# in postgres, create a db name jobbridge then import the .sql file:
+psql -U postgres -d jobbridge -f jobbridge.sql
 git clone https://github.com/your-username/jobbridge.git
 cd jobbridge
 npm install
