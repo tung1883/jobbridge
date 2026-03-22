@@ -79,7 +79,7 @@ const updateProfile = async ({ profile_type, data = {}, user_id }) => {
             website = COALESCE(NULLIF($3,''), website),
             location = COALESCE(NULLIF($4,''), location)
             WHERE user_id = $5
-            RETURNING name, verfication_status, description, website, location`,
+            RETURNING name, verification_status, description, website, location`,
             [name, description, website, location, user_id],
         )
     }

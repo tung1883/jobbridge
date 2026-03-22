@@ -84,10 +84,10 @@ const refreshAccessToken = async (refreshToken) => {
 
     const result = await pool.query(
         `SELECT * FROM refresh_tokens
-     WHERE token=$1
-     AND user_id=$2
-     AND expires_at > NOW()
-     AND revoked = false`,
+        WHERE token=$1
+        AND user_id=$2
+        AND expires_at > NOW()
+        AND revoked = false`,
         [tokenHash, decoded.id],
     )
 

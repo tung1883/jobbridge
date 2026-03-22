@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict B6bCNMhqZfNL54dUd0d60T2Dfl8sdGMadTmYVc4HbtasNgQjWDuLelUzrm3IZIR
+\restrict 4SNtiph57U8pppEMXnCdpYB2egc6jV4l3eqJ5kONWKa58sAkEYtxq6aXlqCAt8G
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -130,9 +130,9 @@ ALTER TABLE public.cvs OWNER TO postgres;
 CREATE TABLE public.jobs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     title text NOT NULL,
-    description text NOT NULL,
-    responsibilities text[],
-    required_qualifications text[],
+    description text,
+    responsibilities text,
+    required_qualifications text,
     salary_min numeric,
     salary_max numeric,
     currency text,
@@ -158,7 +158,8 @@ CREATE TABLE public.refresh_tokens (
     user_id integer,
     token text NOT NULL,
     expires_at timestamp without time zone NOT NULL,
-    created_at timestamp without time zone DEFAULT now()
+    created_at timestamp without time zone DEFAULT now(),
+    revoked boolean DEFAULT false
 );
 
 
@@ -229,7 +230,7 @@ ALTER TABLE ONLY public.refresh_tokens ALTER COLUMN id SET DEFAULT nextval('publ
 --
 
 COPY public.applications (id, job_id, user_id, cv_url, status, created_at, updated_at) FROM stdin;
-02067d48-210c-477b-bdf9-eb5a64cf048e	da0055cf-b1dd-45a4-84aa-210da49f2526	4	uploads\\cvs\\1773770461064-74284888.pdf	submitted	2026-03-18 01:02:18.66338	2026-03-18 01:02:18.66338
+ea9c4c82-b73f-4a97-8dd1-e230fbd9ac76	e680b6d9-719d-4a02-8c8b-acedd3aaf15d	581	uploads\\cvs\\1774153638357-265003708.pdf	submitted	2026-03-22 13:42:11.058489	2026-03-22 13:42:11.058489
 \.
 
 
@@ -238,7 +239,7 @@ COPY public.applications (id, job_id, user_id, cv_url, status, created_at, updat
 --
 
 COPY public.candidate_profiles (id, user_id, full_name, location, summary, created_at) FROM stdin;
-c2f1e7f6-894b-41bf-acc2-3db2e4e8e261	4	\N	\N	\N	2026-03-17 09:42:21.839377
+5804f588-d656-41da-9ab3-cf50976fc3f8	581	Nguyen Duc Tung	Hanoi, Vietnam	Back-End Developer with long-time experience in Spring Boot	2026-03-22 11:26:11.418358
 \.
 
 
@@ -247,7 +248,7 @@ c2f1e7f6-894b-41bf-acc2-3db2e4e8e261	4	\N	\N	\N	2026-03-17 09:42:21.839377
 --
 
 COPY public.companies (id, user_id, name, verification_status, description, website, logo_url, location, created_at) FROM stdin;
-e84cfe56-bb1d-4abd-b768-b2d7adb6058f	8	Testing Company	pending	Small size company that mostly used for teseting	more_test.com	/uploads/logos/1773718343753-955408049.png	Hanoi, Vietnam	2026-03-17 10:09:27.535783
+4aea2d59-af1e-452f-96e1-e3edf217e0ca	582	ACME Group	verified	Energetic culture combined with experience	\N	\N	\N	2026-03-22 11:28:16.504442
 \.
 
 
@@ -256,9 +257,6 @@ e84cfe56-bb1d-4abd-b768-b2d7adb6058f	8	Testing Company	pending	Small size compan
 --
 
 COPY public.company_verification_documents (id, company_id, document_type, file_path, uploaded_at) FROM stdin;
-2e2d4b0a-3daf-4cdf-90e8-95f7834cba32	e84cfe56-bb1d-4abd-b768-b2d7adb6058f	\N	/uploads/verification_docs/1773720890180-39946539.pdf	2026-03-17 11:14:50.240799
-c3c2dcdb-224a-4931-9dae-09ee162b9173	e84cfe56-bb1d-4abd-b768-b2d7adb6058f	\N	/uploads/verification_docs/1773720908485-893590610.pdf	2026-03-17 11:15:08.524585
-8c627ec7-1c3c-40c1-9ae4-26234d33bd31	e84cfe56-bb1d-4abd-b768-b2d7adb6058f	\N	/uploads/verification_docs/1773720908486-947428359.png	2026-03-17 11:15:08.528666
 \.
 
 
@@ -269,6 +267,10 @@ c3c2dcdb-224a-4931-9dae-09ee162b9173	e84cfe56-bb1d-4abd-b768-b2d7adb6058f	\N	/up
 COPY public.cvs (id, user_id, file_name, file_path, uploaded_at) FROM stdin;
 7edf77d8-746a-4f3f-a117-871b86e19009	4	resume_1.pdf	uploads\\cvs\\1773770429505-219950746.pdf	2026-03-18 01:00:29.550072
 62c6c90c-4d7f-4e99-856f-7869b6d9bcad	4	resume_1.pdf	uploads\\cvs\\1773770461064-74284888.pdf	2026-03-18 01:01:01.113663
+b3ed15ff-619d-487c-9adf-36037a401109	17	resume_1.pdf	uploads\\cvs\\1773815495147-19417231.pdf	2026-03-18 13:31:35.181454
+9367be74-4014-42aa-8018-20c7db44419d	16	resume_1.pdf	uploads\\cvs\\1773818228668-290523469.pdf	2026-03-18 14:17:08.707334
+a77325f6-a407-4c7d-a1a7-7f37bf067495	19	resume_3.pdf	uploads\\cvs\\1773819621426-638282578.pdf	2026-03-18 14:40:21.431477
+36f14a3f-ee46-45de-b4b0-dd7a6bf9bedb	581	resume_1.pdf	uploads\\cvs\\1774153638357-265003708.pdf	2026-03-22 11:27:18.40023
 \.
 
 
@@ -277,7 +279,7 @@ COPY public.cvs (id, user_id, file_name, file_path, uploaded_at) FROM stdin;
 --
 
 COPY public.jobs (id, title, description, responsibilities, required_qualifications, salary_min, salary_max, currency, location, job_type, publishing_date, application_deadline, created_by, created_at, updated_at, search_vector) FROM stdin;
-da0055cf-b1dd-45a4-84aa-210da49f2526	Backend Developer	We are looking for a backend developer to build scalable APIs.	{"Build REST APIs","Optimize database queries","Collaborate with frontend team"}	{"2+ years Node.js experience","Experience with PostgreSQL","Understanding of REST APIs"}	1000	2000	USD	Hanoi, Vietnam	FULL_TIME	2026-03-15 09:00:00	2026-04-01 23:59:59	8	2026-03-17 22:16:07.273009	2026-03-18 00:04:21.789438	'api':13 'backend':1,8 'build':11 'develop':2,9 'look':5 'scalabl':12
+e680b6d9-719d-4a02-8c8b-acedd3aaf15d	Senior Product Designer	Description			0	\N	USD		Full-time	\N	\N	582	2026-03-22 12:55:39.447611	2026-03-22 12:55:39.447611	'descript':4 'design':3 'product':2 'senior':1
 \.
 
 
@@ -285,23 +287,15 @@ da0055cf-b1dd-45a4-84aa-210da49f2526	Backend Developer	We are looking for a back
 -- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.refresh_tokens (id, user_id, token, expires_at, created_at) FROM stdin;
-37	\N	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6bnVsbCwianRpIjoiOWYxNmFlZGYtZTQ2Yy00MmI2LTliYTgtMmUzYjlhMDJkNWM3IiwiaWF0IjoxNzczNjg5OTQxLCJleHAiOjE3NzQyOTQ3NDF9.4xRsSz16ODuLJveDsl-mwSartRxM9hwSwz8YPA9BH5s	2026-03-24 02:39:01.966085	2026-03-17 02:39:01.966085
-38	1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwianRpIjoiMjI3MzU1NDQtYzU0MC00ZjM2LTg3NTAtZTgzNjcxOTVhNjE3IiwiaWF0IjoxNzczNjkwMjUzLCJleHAiOjE3NzQyOTUwNTN9.UP2wNc4wEipzcVbPo8V9PK9fMRvKJW7VvV_1gxSZuXo	2026-03-24 02:44:13.865397	2026-03-17 02:44:13.865397
-39	1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwianRpIjoiMGYyNWE3ZDEtYzkzYy00ODljLTg1NWMtMWRiMTA5NTdlOTgyIiwiaWF0IjoxNzczNjkwMjU3LCJleHAiOjE3NzQyOTUwNTd9.3aINJ8KaCxwir5Rea53YIZ2eD8rreirDShFKf4mECRQ	2026-03-24 02:44:17.528222	2026-03-17 02:44:17.528222
-40	1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwianRpIjoiNzU0NmVkOGItNmE5MS00YThjLThiMjQtMjVhYzE5ODI3NTAyIiwiaWF0IjoxNzczNjkwMjU5LCJleHAiOjE3NzQyOTUwNTl9.f0HH4nGg7pLcbkCBL0h_M97IjQaW9c2xzeD3XQdvdiY	2026-03-24 02:44:19.61426	2026-03-17 02:44:19.61426
-41	1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwianRpIjoiNTAxNzU0YmQtMmQ2Zi00NWM0LWE5YmQtYTBjZTdjZTllM2ZlIiwiaWF0IjoxNzczNjkwMzQzLCJleHAiOjE3NzQyOTUxNDN9.9K0_wGKqCGcsKZ3fFO1LoZ0YBiSG_y33YWBE6-2wGRM	2026-03-24 02:45:43.783645	2026-03-17 02:45:43.783645
-42	1	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwianRpIjoiMGI3YWM0ZWUtYTMyNy00MTBmLWIzOTEtZjEwZDU0MGQ2NTM3IiwiaWF0IjoxNzczNjkwNzc0LCJleHAiOjE3NzQyOTU1NzR9.bGeGTPnYSRGmau-X6QVWByZzElnI27qDIH1Ht9moYDg	2026-03-24 02:52:54.200252	2026-03-17 02:52:54.200252
-43	2	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwianRpIjoiZjlmZmMwMTctMWI2OS00MGY4LWI5NzUtMzIxNWZiNmQwZjFlIiwiaWF0IjoxNzczNjkxMTM2LCJleHAiOjE3NzQyOTU5MzZ9.vfZU2FE7VTFrw09deMXwAOTt4pDiGK3v0ucDfnJ-BhQ	2026-03-24 02:58:56.710202	2026-03-17 02:58:56.710202
-44	2	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwianRpIjoiMTJlOGMzOTgtYmE0NS00NmZkLThjZDUtOTczODgzMTVkMmQ1IiwiaWF0IjoxNzczNzEwNzA5LCJleHAiOjE3NzQzMTU1MDl9.TYPCjLwatZDYyJUXAboBixcQabpAxWU4iY_blTdusvA	2026-03-24 08:25:09.202707	2026-03-17 08:25:09.202707
-45	2	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwianRpIjoiMDQ5OWY1ODQtZDk1MC00MmM4LTgzZDYtNDFiYzRlMmE2NWM0IiwiaWF0IjoxNzczNzExNzU0LCJleHAiOjE3NzQzMTY1NTR9.BRf-1vnxC7OF6y0aUDLPWlZ1GVGyKLeMTwE3fiOFGuk	2026-03-24 08:42:34.377774	2026-03-17 08:42:34.377774
-46	5	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwianRpIjoiMmIzZDQ2MTktYzk2Ni00MTNjLWE5MWItNjQ1ZTBiMDA5MmYzIiwiaWF0IjoxNzczNzE1NTgwLCJleHAiOjE3NzQzMjAzODB9.2dq-xA5noWcgAqI0E9yPvYs_FlsrcVdSuamhbnjha2A	2026-03-24 09:46:20.635824	2026-03-17 09:46:20.635824
-47	5	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwianRpIjoiOThhNzFlOTYtMmVmNC00ODVmLWE4YzUtNDgzOGI3MDRlMWJkIiwiaWF0IjoxNzczNzE1ODY2LCJleHAiOjE3NzQzMjA2NjZ9.8s1aQ0UuHy7v8Yu8fdMccX5Xlsfecd8Ybugb6Nhchj4	2026-03-24 09:51:06.904587	2026-03-17 09:51:06.904587
-48	6	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwianRpIjoiOWJlYTA0OTctMjY4Ny00YjQ5LWE2YzktOThkYTM5MGExZjc5IiwiaWF0IjoxNzczNzE2MjI2LCJleHAiOjE3NzQzMjEwMjZ9.nAAUmNVfMNMjzr-2w8mb5QjpkQ5D0VhtAA7VY4_F7lY	2026-03-24 09:57:06.494832	2026-03-17 09:57:06.494832
-49	8	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwianRpIjoiYWU1ZWQ2YzctZGVhMi00YWVjLWFjYzUtZGNkMTY0MWZhOTdmIiwiaWF0IjoxNzczNzE3MTE2LCJleHAiOjE3NzQzMjE5MTZ9.-iOIwVmsj8K-3ReTyNaeWO_z42jfdNyCat65gVwi-ss	2026-03-24 10:11:56.764704	2026-03-17 10:11:56.764704
-50	8	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwianRpIjoiNDQzNjA1NTctZWRhNi00NzZhLTlhMWUtYjFkODJmM2NiYmRlIiwiaWF0IjoxNzczNzU5MjIxLCJleHAiOjE3NzQzNjQwMjF9.YqSS70TJWs-nC0JEzIIWNwHzvwfDjsr2OPWrLsKrLA8	2026-03-24 21:53:41.223558	2026-03-17 21:53:41.223558
-51	4	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwianRpIjoiODBiYTIzYzctNzViNS00ZTU0LThlYmMtNDhiOTRjZjk5YmYzIiwiaWF0IjoxNzczNzcwMjU2LCJleHAiOjE3NzQzNzUwNTZ9.d11V8BbyI7fiNN1Yuc_8OIy5KAKIzIbEtBnQF47Aoco	2026-03-25 00:57:36.724198	2026-03-18 00:57:36.724198
-52	8	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwianRpIjoiODNjYjMyZDktYjk4Yy00ZjI0LWE3ZGYtMjAxZDMwOTcyZDA2IiwiaWF0IjoxNzczNzcwNjM5LCJleHAiOjE3NzQzNzU0Mzl9.avMvmRL_f9M4F_zu-DfK-Ul-rgk_axYi56atyAd-EgY	2026-03-25 01:03:59.084307	2026-03-18 01:03:59.084307
+COPY public.refresh_tokens (id, user_id, token, expires_at, created_at, revoked) FROM stdin;
+380	582	63a915cd8d12838ec704daa14f39018d747093bdb9e628ecd720de708754989c	2026-03-29 11:28:16.656547	2026-03-22 11:28:16.656547	t
+379	581	083c11364115ea655156927d4d400567e151f3f2cf3c352624da0c35e842c9db	2026-03-29 11:26:11.589829	2026-03-22 11:26:11.589829	t
+382	581	e83918cd23aa1cfea8955973755067cd7c491f0f89ff2fd85a106e3766a2121d	2026-03-29 13:07:18.768771	2026-03-22 13:07:18.768771	f
+381	582	7240c02e31c46929a99c458da3ae1c30e924c28b83f87376f8d3db038047e090	2026-03-29 12:56:09.951684	2026-03-22 12:56:09.951684	t
+383	581	d63fb2ab0773d8698089dc3c760a51372b5b6967e574d8a6db0230d68833752a	2026-03-29 15:06:56.677827	2026-03-22 15:06:56.677827	t
+384	581	d1d37bd26761e572ea9702cd2fb1e00f76a94177c44a42a4100979ec8d8fb188	2026-03-29 15:10:39.065172	2026-03-22 15:10:39.065172	f
+385	581	59f9b4fe42e364fcfa754f2cce25367ddf4405eea2a4a0664695069fc91378e7	2026-03-29 15:49:46.620458	2026-03-22 15:49:46.620458	t
+386	581	57675186d2c3bedc5eb6565ada520049504af13c8b212f9cd462b89d2882152c	2026-03-29 16:02:15.379928	2026-03-22 16:02:15.379928	t
 \.
 
 
@@ -310,8 +304,8 @@ COPY public.refresh_tokens (id, user_id, token, expires_at, created_at) FROM std
 --
 
 COPY public.users (id, email, password_hash, role, is_verified, created_at) FROM stdin;
-4	user@test.com	$2b$10$0SCIO4Ka8UNJkRKjZuiL7e9MJ0HZCCp5yea6uOJBELUGNgDKLCPuy	job_seeker	f	2026-03-17 09:42:21.836119
-8	company@test.com	$2b$10$eXWtT1UgQTZidR.qOaKoeerHHqA0iQ45OyhXB.cUMgt7MfZ6OeCoO	recruiter	f	2026-03-17 10:09:27.533154
+581	seeker@gmail.com	$2b$10$3w/pgesXiXkKkwFijS6Y1OUL.OGs6Z6TPNPb901CiiMV0ERBKzJtu	job_seeker	f	2026-03-22 11:26:11.418358
+582	recruiter@gmail.com	$2b$10$KfrH/h2jDhxeI30sh2vBGeSaBatQeTPVPxA8bxDDlWrpSL02.jE0K	recruiter	f	2026-03-22 11:28:16.504442
 \.
 
 
@@ -319,14 +313,14 @@ COPY public.users (id, email, password_hash, role, is_verified, created_at) FROM
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.refresh_tokens_id_seq', 52, true);
+SELECT pg_catalog.setval('public.refresh_tokens_id_seq', 386, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 8, true);
+SELECT pg_catalog.setval('public.users_id_seq', 582, true);
 
 
 --
@@ -475,5 +469,5 @@ ALTER TABLE ONLY public.jobs
 -- PostgreSQL database dump complete
 --
 
-\unrestrict B6bCNMhqZfNL54dUd0d60T2Dfl8sdGMadTmYVc4HbtasNgQjWDuLelUzrm3IZIR
+\unrestrict 4SNtiph57U8pppEMXnCdpYB2egc6jV4l3eqJ5kONWKa58sAkEYtxq6aXlqCAt8G
 

@@ -1,5 +1,5 @@
 # API Documentation
-> Auto-generated on 2026-03-20T13:06:22.288Z
+> Auto-generated on 2026-03-22T05:42:01.263Z
 
 ---
 
@@ -41,26 +41,26 @@
 
 ## /api/v1/jobs
 
-| Method | Path                          |
-| ------ | ----------------------------- |
-| GET    | /api/v1/jobs/my               |
-| GET    | /api/v1/jobs                  |
-| POST   | /api/v1/jobs                  |
-| PUT    | /api/v1/jobs/:id              |
-| GET    | /api/v1/jobs/jobs/:id/company |
+| Method | Path                     |
+| ------ | ------------------------ |
+| GET    | /api/v1/jobs/my          |
+| GET    | /api/v1/jobs             |
+| POST   | /api/v1/jobs             |
+| PUT    | /api/v1/jobs/:id         |
+| GET    | /api/v1/jobs/:id/company |
 
 ## /api/v1/profiles
 
 | Method | Path                              |
 | ------ | --------------------------------- |
-| GET    | /api/v1/profiles/candidates/      |
+| GET    | /api/v1/profiles/candidates/my    |
 | PUT    | /api/v1/profiles/candidates/      |
 | GET    | /api/v1/profiles/candidates/:id   |
-| GET    | /api/v1/profiles/companies/:id    |
 | PUT    | /api/v1/profiles/companies        |
 | PUT    | /api/v1/profiles/companies/logo   |
 | POST   | /api/v1/profiles/companies/verify |
-| GET    | /api/v1/profiles/companies        |
+| GET    | /api/v1/profiles/companies/my     |
+| GET    | /api/v1/profiles/companies/:id    |
 
 ## /api/v1/ranking
 

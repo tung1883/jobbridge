@@ -13,6 +13,7 @@ const appRoutes      = require('./routes/applications');
 const profileRoutes  = require('./routes/profiles');
 const cvRoutes       = require('./routes/cv');
 const rankingRouter  = require('./routes/ranking');
+const bookmarkRoutes = require('./routes/bookmark')
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/v1/jobs',         jobRoutes);
 app.use('/api/v1/applications', appRoutes);
 app.use('/api/v1/profiles',     profileRoutes);
 app.use('/api/v1/cvs',          cvRoutes);
+app.use('/api/v1/bookmark/',   bookmarkRoutes)
 
 app.use(errorHandler);
 
