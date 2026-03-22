@@ -2,6 +2,7 @@
     "name": "be",
     "version": "1.0.0",
     "description": "",
+    "private": true,
     "workspaces": [
         "frontend",
         "backend"

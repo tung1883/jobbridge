@@ -27,7 +27,7 @@ JobBridge allows:
 # in postgres, create a db name jobbridge and another db name jobbridge_test for testing purporses 
 # then import the .sql file, for example:
 psql -U postgres -d jobbridge -f jobbridge.sql
-git clone https://github.com/tung1883/jobbridge.git
+git clone --recurse-submodules https://github.com/tung1883/jobbridge.git
 cd jobbridge
 npm install
 cp backend/.env.example backend/.env    # fill in your values
