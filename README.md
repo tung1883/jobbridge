@@ -24,7 +24,8 @@ JobBridge allows:
 
 ### Installation
 ```bash
-# in postgres, create a db name jobbridge then import the .sql file:
+# in postgres, create a db name jobbridge and another db name jobbridge_test for testing purporses 
+# then import the .sql file, for example:
 psql -U postgres -d jobbridge -f jobbridge.sql
 git clone https://github.com/tung1883/jobbridge.git
 cd jobbridge
