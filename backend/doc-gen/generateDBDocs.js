@@ -185,8 +185,8 @@ const generateDocs = async () => {
     doc += `---\n\n`;
   }
 
-  fs.mkdirSync(path.join(__dirname, '../docs'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, '../docs/database.md'), doc);
+  fs.mkdirSync(path.join(__dirname, '../../docs'), { recursive: true });
+  fs.writeFileSync(path.join(__dirname, '../../docs/database.md'), doc);
   console.log('docs/database.md generated');
   process.exit(0);
 };

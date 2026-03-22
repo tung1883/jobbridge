@@ -1,0 +1,66 @@
+{
+    "name": "be",
+    "version": "1.0.0",
+    "description": "",
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
+    "scripts": {
+        "start:be": "npm run start --workspace backend",
+        "dev:be": "npm run dev --workspace backend",
+        "test:be": "npm run test --workspace backend",
+        "test:be:watch": "npm run test:watch --workspace backend",
+        "test:be:cover": "npm run test:cover --workspace backend",
+        "gendocs": "npm run gendocs --workspace backend",
+        "dev:fe": "npm run dev --workspace frontend",
+        "build:fe": "npm run build --workspace frontend",
+        "lint:fe": "npm run lint --workspace frontend",
+        "preview:fe": "npm run preview --workspace frontend",
+        "dev:all": "concurrently \"npm run dev:be\" \"npm run dev:fe\"",
+        "start:all:prod": "concurrently \"npm run start:be\" \"npm run build:fe\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "dependencies": {
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.6",
+        "dotenv": "^17.3.1",
+        "express": "^5.2.1",
+        "express-list-endpoints": "^7.1.1",
+        "express-rate-limit": "^8.3.1",
+        "helmet": "^8.1.0",
+        "joi": "^18.0.2",
+        "jsonwebtoken": "^9.0.3",
+        "multer": "^2.1.1",
+        "pg": "^8.20.0",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "winston": "^3.19.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.4",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.0",
+        "concurrently": "^9.2.1",
+        "cross-env": "^10.1.0",
+        "eslint": "^9.39.4",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-react-refresh": "^0.5.2",
+        "globals": "^17.4.0",
+        "jest": "^30.3.0",
+        "nodemon": "^3.1.14",
+        "pg-mem": "^3.0.14",
+        "supertest": "^7.2.2",
+        "vite": "^8.0.0"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "setupFilesAfterEnv": [
+            "<rootDir>/tests/setup.js"
+        ]
+    }
+}

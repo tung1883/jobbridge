@@ -56,8 +56,11 @@ const generateApiDocs = () => {
     doc += `\n`;
   }
 
-  fs.mkdirSync(path.join(__dirname, '../docs'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, '../docs/api.md'), doc);
+  // fs.mkdirSync(path.join(__dirname, '../docs'), { recursive: true });
+  // fs.writeFileSync(path.join(__dirname, '../docs/api.md'), doc);
+  const docsPath = path.join(__dirname, "../../docs") // go up two levels
+  fs.mkdirSync(docsPath, { recursive: true })
+  fs.writeFileSync(path.join(docsPath, "api.md"), doc)
   console.log('docs/api.md generated');
   process.exit(0);
 };

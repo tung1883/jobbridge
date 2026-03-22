@@ -1,5 +1,5 @@
 # Database Documentation
-> Auto-generated on 2026-03-22T05:42:00.920Z
+> Auto-generated on 2026-03-22T16:05:39.698Z
 
 ---
 
@@ -80,6 +80,7 @@
 | logo_url            | text      | YES      | -                 |
 | location            | text      | YES      | -                 |
 | created_at          | timestamp | YES      | CURRENT_TIMESTAMP |
+| industry            | text      | YES      | -                 |
 
 ### Primary Key
 - `id`
@@ -113,6 +114,7 @@
 | document_type | text      | YES      | -                 |
 | file_path     | text      | NO       | -                 |
 | uploaded_at   | timestamp | YES      | CURRENT_TIMESTAMP |
+| file_name     | text      | NO       | ''::text          |
 
 ### Primary Key
 - `id`
@@ -129,6 +131,7 @@
 
 ### Constraints
 
+- `company_verification_documents_file_name_not_null`: `file_name IS NOT NULL`
 - `company_verification_documents_id_not_null`: `id IS NOT NULL`
 - `company_verification_documents_file_path_not_null`: `file_path IS NOT NULL`
 

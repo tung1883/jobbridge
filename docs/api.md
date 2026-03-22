@@ -1,5 +1,5 @@
 # API Documentation
-> Auto-generated on 2026-03-22T05:42:01.263Z
+> Auto-generated on 2026-03-22T16:05:40.005Z
 
 ---
 
@@ -21,13 +21,13 @@
 | POST   | /api/v1/auth/refresh  |
 | POST   | /api/v1/auth/logout   |
 
-## /api/v1/bookmarks
+## /api/v1/bookmark
 
-| Method | Path                           |
-| ------ | ------------------------------ |
-| POST   | /api/v1/bookmarks/saved        |
-| DELETE | /api/v1/bookmarks/saved/:jobId |
-| GET    | /api/v1/bookmarks/saved        |
+| Method | Path                    |
+| ------ | ----------------------- |
+| POST   | /api/v1/bookmark        |
+| DELETE | /api/v1/bookmark/:jobId |
+| GET    | /api/v1/bookmark        |
 
 ## /api/v1/cvs
 

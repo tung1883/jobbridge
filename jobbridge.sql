@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 4SNtiph57U8pppEMXnCdpYB2egc6jV4l3eqJ5kONWKa58sAkEYtxq6aXlqCAt8G
+\restrict SI8BnxXFYMkfOgFoYChRnRwzq19OFb6JEB7fTk56XfhkQW7ZpzQTZZRCOh43keh
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -87,6 +87,7 @@ CREATE TABLE public.companies (
     logo_url text,
     location text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    industry text,
     CONSTRAINT companies_verification_status_check CHECK ((verification_status = ANY (ARRAY['pending'::text, 'verified'::text, 'rejected'::text])))
 );
 
@@ -102,7 +103,8 @@ CREATE TABLE public.company_verification_documents (
     company_id uuid,
     document_type text,
     file_path text NOT NULL,
-    uploaded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    uploaded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    file_name text DEFAULT ''::text NOT NULL
 );
 
 
@@ -247,8 +249,8 @@ COPY public.candidate_profiles (id, user_id, full_name, location, summary, creat
 -- Data for Name: companies; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.companies (id, user_id, name, verification_status, description, website, logo_url, location, created_at) FROM stdin;
-4aea2d59-af1e-452f-96e1-e3edf217e0ca	582	ACME Group	verified	Energetic culture combined with experience	\N	\N	\N	2026-03-22 11:28:16.504442
+COPY public.companies (id, user_id, name, verification_status, description, website, logo_url, location, created_at, industry) FROM stdin;
+4aea2d59-af1e-452f-96e1-e3edf217e0ca	582	ACME Group	verified	Energetic culture combined with experience	\N	\N	\N	2026-03-22 11:28:16.504442	\N
 \.
 
 
@@ -256,7 +258,7 @@ COPY public.companies (id, user_id, name, verification_status, description, webs
 -- Data for Name: company_verification_documents; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.company_verification_documents (id, company_id, document_type, file_path, uploaded_at) FROM stdin;
+COPY public.company_verification_documents (id, company_id, document_type, file_path, uploaded_at, file_name) FROM stdin;
 \.
 
 
@@ -296,6 +298,7 @@ COPY public.refresh_tokens (id, user_id, token, expires_at, created_at, revoked)
 384	581	d1d37bd26761e572ea9702cd2fb1e00f76a94177c44a42a4100979ec8d8fb188	2026-03-29 15:10:39.065172	2026-03-22 15:10:39.065172	f
 385	581	59f9b4fe42e364fcfa754f2cce25367ddf4405eea2a4a0664695069fc91378e7	2026-03-29 15:49:46.620458	2026-03-22 15:49:46.620458	t
 386	581	57675186d2c3bedc5eb6565ada520049504af13c8b212f9cd462b89d2882152c	2026-03-29 16:02:15.379928	2026-03-22 16:02:15.379928	t
+387	582	9cf118b0bc4bb3b22b634ed830e3c968fbdd7389672ec1f3ece7c6c9b4518a9a	2026-03-29 22:02:54.90622	2026-03-22 22:02:54.90622	t
 \.
 
 
@@ -313,7 +316,7 @@ COPY public.users (id, email, password_hash, role, is_verified, created_at) FROM
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.refresh_tokens_id_seq', 386, true);
+SELECT pg_catalog.setval('public.refresh_tokens_id_seq', 387, true);
 
 
 --
@@ -469,5 +472,5 @@ ALTER TABLE ONLY public.jobs
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 4SNtiph57U8pppEMXnCdpYB2egc6jV4l3eqJ5kONWKa58sAkEYtxq6aXlqCAt8G
+\unrestrict SI8BnxXFYMkfOgFoYChRnRwzq19OFb6JEB7fTk56XfhkQW7ZpzQTZZRCOh43keh
 
