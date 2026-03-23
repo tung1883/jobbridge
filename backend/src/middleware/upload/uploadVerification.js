@@ -15,19 +15,20 @@ const storage = multer.diskStorage({
 })
 
 const fileFilter = (req, file, cb) => {
-    const allowed = ["application/pdf", "image/png", "image/jpeg", "image/jpg"]
+    const allowed = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
+        "application/msword", "image/png", "image/jpeg", "image/jpg"]
 
     if (allowed.includes(file?.mimetype)) {
         cb(null, true)
     } else {
         const error = new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname)
-        error.message = "Only PDF/JPG/JPEG/PNG allowed" // override default message
+        error.message = "Only PDF/DOCX/DOC/JPG/JPEG/PNG allowed" // override default message
         cb(error, false)
         return cb(error, false)
     }
 }
 
-const uploadVerficationDocumentsMiddleware = (req, res, next) => {
+const uploadVerificationDocumentsMiddleware = (req, res, next) => {
     const upload = multer({
         storage,
         fileFilter,
@@ -49,4 +50,4 @@ const uploadVerficationDocumentsMiddleware = (req, res, next) => {
     })
 }
 
-module.exports = { uploadVerficationDocumentsMiddleware }
+module.exports = { uploadVerificationDocumentsMiddleware }

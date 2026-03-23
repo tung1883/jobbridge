@@ -3,20 +3,20 @@ const pool = require("../../config/db")
 const auth = require("../middleware/auth")
 const router = express.Router()
 
-router.post("/", auth, async (req, res) => {
+router.post("/:jobId", auth, async (req, res) => {
     try {
-        const { job_id } = req.body
+        const { jobId } = req.params
 
         if (req.user.role !== "job_seeker") {
             return res.status(403).json({ message: "Forbidden" })
         }
 
         const result = await pool.query(
-            `INSERT INTO saved_jobs (user_id, job_id)
+            `INSERT INTO bookmarked_jobs (user_id, job_id)
             VALUES ($1, $2)
             ON CONFLICT (user_id, job_id) DO NOTHING
             RETURNING *`,
-            [req.user.id, job_id],
+            [req.user.id, jobId],
         )
 
         res.json(result.rows[0] || { message: "Already saved" })
@@ -30,7 +30,7 @@ router.delete("/:jobId", auth, async (req, res) => {
         const { jobId } = req.params
 
         await pool.query(
-            `DELETE FROM saved_jobs
+            `DELETE FROM bookmarked_jobs
             WHERE user_id = $1 AND job_id = $2`,
             [req.user.id, jobId],
         )
@@ -49,12 +49,13 @@ router.get("/", auth, async (req, res) => {
                 j.title,
                 j.location,
                 j.created_at,
-                c.name AS company_name
-            FROM saved_jobs s
+                c.name AS company_name,
+                c.description AS company_description
+            FROM bookmarked_jobs s
             JOIN jobs j ON s.job_id = j.id
             LEFT JOIN companies c ON j.created_by = c.user_id
             WHERE s.user_id = $1
-            ORDER BY s.created_at DESC`,
+            ORDER BY s.bookmarked_at DESC`,
             [req.user.id],
         )
 

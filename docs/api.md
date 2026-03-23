@@ -1,5 +1,5 @@
 # API Documentation
-> Auto-generated on 2026-03-22T16:05:40.005Z
+> Auto-generated on 2026-03-23T05:50:31.467Z
 
 ---
 
@@ -25,7 +25,7 @@
 
 | Method | Path                    |
 | ------ | ----------------------- |
-| POST   | /api/v1/bookmark        |
+| POST   | /api/v1/bookmark/:jobId |
 | DELETE | /api/v1/bookmark/:jobId |
 | GET    | /api/v1/bookmark        |
 
@@ -51,16 +51,19 @@
 
 ## /api/v1/profiles
 
-| Method | Path                              |
-| ------ | --------------------------------- |
-| GET    | /api/v1/profiles/candidates/my    |
-| PUT    | /api/v1/profiles/candidates/      |
-| GET    | /api/v1/profiles/candidates/:id   |
-| PUT    | /api/v1/profiles/companies        |
-| PUT    | /api/v1/profiles/companies/logo   |
-| POST   | /api/v1/profiles/companies/verify |
-| GET    | /api/v1/profiles/companies/my     |
-| GET    | /api/v1/profiles/companies/:id    |
+| Method | Path                                  |
+| ------ | ------------------------------------- |
+| GET    | /api/v1/profiles/candidates/my        |
+| PUT    | /api/v1/profiles/candidates/          |
+| GET    | /api/v1/profiles/candidates/:id       |
+| PUT    | /api/v1/profiles/companies            |
+| PUT    | /api/v1/profiles/companies/logo       |
+| POST   | /api/v1/profiles/companies/verify     |
+| GET    | /api/v1/profiles/companies/verify     |
+| DELETE | /api/v1/profiles/companies/verify     |
+| PUT    | /api/v1/profiles/companies/verify/:id |
+| GET    | /api/v1/profiles/companies/my         |
+| GET    | /api/v1/profiles/companies/:id        |
 
 ## /api/v1/ranking
 

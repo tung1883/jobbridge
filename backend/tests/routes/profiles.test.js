@@ -6,6 +6,7 @@ const app = require("../../src/app")
 const pool = require("../../config/db")
 const { generateTestingEmail, fakePng, clearFilesInFolder } = require("../setup")
 const { upload } = require("../../config")
+const { reset } = require("supertest/lib/cookies")
 
 const registerUser = (data = {}) =>
     request(app)
@@ -349,7 +350,7 @@ describe("POST /profiles/companies/verify", () => {
             .post("/api/v1/profiles/companies/verify")
             .set("User-Agent", "Jest Test Runner")
             .set("Authorization", `Bearer ${loginRes.body.access_token}`)
-            .attach("documents", Buffer.alloc(1024, 'a'), "document.pdf")
+            .attach("documents", Buffer.alloc(1024, 'a'), "document.docx")
 
         const result = await pool.query(
             "select * from company_verification_documents where file_path=$1",
@@ -357,7 +358,7 @@ describe("POST /profiles/companies/verify", () => {
         )
 
         expect(res.statusCode).toBe(201)
-        expect(res.body[0].document_type).toBe("pdf")
+        expect(res.body[0].document_type).toBe("docx")
         expect(result?.rows[0]).toBeDefined()
         expect(fs.existsSync(`./${res.body[0].file_path}`)).toBe(true)
     })
@@ -372,12 +373,12 @@ describe("POST /profiles/companies/verify", () => {
             .set("User-Agent", "Jest Test Runner")
             .set("Authorization", `Bearer ${loginRes.body.access_token}`)
             .attach("documents", Buffer.alloc(1024, "a"), "document1.pdf")
-            .attach("documents", Buffer.alloc(1024, "a"), "document2.pdf")
+            .attach("documents", Buffer.alloc(1024, "a"), "document2.docx")
             .attach("documents", Buffer.alloc(1024, "a"), "image2.png")
             .attach("documents", Buffer.alloc(1024, "a"), "image3.jpeg")
             .attach("documents", Buffer.alloc(1024, "a"), "image4.jpg")
 
-        const allowedTypes = ["pdf", "jpeg", "jpg", "png"]
+        const allowedTypes = ["pdf", "jpeg", "jpg", "png", "docx", "doc"]
         expect(res.statusCode).toBe(201)
         for (const doc of res.body) {
             const result = await pool.query(
@@ -400,7 +401,7 @@ describe("POST /profiles/companies/verify", () => {
             .post("/api/v1/profiles/companies/verify")
             .set("User-Agent", "Jest Test Runner")
             .set("Authorization", `Bearer ${loginRes.body.access_token}`)
-            .attach("documents", Buffer.alloc(20 * 1024 * 1024, "a"), "document.pdf")
+            .attach("documents", Buffer.alloc(20 * 1024 * 1024, "a"), "document.docx")
 
         expect(res.statusCode).toBe(400)
         expect(res.body).toMatchObject({ error: "Maximum file size is 10MB" })
@@ -418,6 +419,102 @@ describe("POST /profiles/companies/verify", () => {
             .attach("documents", Buffer.alloc(15 * 1024 * 1024, "a"), "document.pdfe")
 
         expect(res.statusCode).toBe(400)
-        expect(res.body).toMatchObject({ error: "Only PDF/JPG/JPEG/PNG allowed" })
+        expect(res.body).toMatchObject({ error: "Only PDF/DOCX/DOC/JPG/JPEG/PNG allowed" })
+    })
+})
+
+describe("GET /profiles/companies/verify", () => {
+    test("get company verification documents", async () => {
+        const email = generateTestingEmail()
+        await registerUser({ email, role: "recruiter" })
+        const loginRes = await loginUser({ email })
+
+        const uploadRes = await request(app)
+            .post("/api/v1/profiles/companies/verify")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .attach("documents", Buffer.alloc(1024, "a"), "document.pdf")
+
+        const res = await request(app).get("/api/v1/profiles/companies/verify").set("Authorization", `Bearer ${loginRes.body.access_token}`)
+
+        expect(res.statusCode).toBe(200)
+        expect(res.body.length).toBeGreaterThan(0)
+        expect(res.body[0].file_path).toBe(uploadRes.body[0].file_path)
+    })
+})
+
+describe("DELETE /profiles/companies/verify", () => {
+    test("delete verification documents", async () => {
+        const email = generateTestingEmail()
+        await registerUser({ email, role: "recruiter" })
+        const loginRes = await loginUser({ email })
+
+        const uploadRes = await request(app)
+            .post("/api/v1/profiles/companies/verify")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .attach("documents", Buffer.alloc(1024, "a"), "document.pdf")
+
+        const fileId = uploadRes.body[0].id
+
+        const res = await request(app)
+            .delete("/api/v1/profiles/companies/verify")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .send({ docs: [fileId] })
+
+        const dbCheck = await pool.query("SELECT * FROM company_verification_documents WHERE id=$1", [fileId])
+
+        expect(res.statusCode).toBe(200)
+        expect(dbCheck.rows.length).toBe(0)
+        expect(res.body).toStrictEqual({ message: "Total files deleted are 1" })
+    })
+})
+
+describe("PUT /profiles/companies/verify/:fileId", () => {
+    test("edit verification document's name", async () => {
+        const email = generateTestingEmail()
+        await registerUser({ email, role: "recruiter" })
+        const loginRes = await loginUser({ email })
+
+        const uploadRes = await request(app)
+            .post("/api/v1/profiles/companies/verify")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .attach("documents", Buffer.alloc(1024, "a"), "document.pdf")
+
+        const fileId = uploadRes.body[0].id
+        const oldPath = uploadRes.body[0].file_path
+        const res = await request(app)
+            .put(`/api/v1/profiles/companies/verify/${fileId}`)
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .send({
+                file_name: 'updated_name.pdf'
+            })
+            
+        const dbCheck = await pool.query("SELECT * FROM company_verification_documents WHERE id=$1", [fileId])
+
+        expect(res.statusCode).toBe(200)
+        expect(dbCheck.rows[0].file_name).toBe("updated_name.pdf")
+        expect(dbCheck.rows[0].file_path).toBe(oldPath)
+    }),
+
+    test("edit verification document's file", async () => {
+        const email = generateTestingEmail()
+        await registerUser({ email, role: "recruiter" })
+        const loginRes = await loginUser({ email })
+
+        const uploadRes = await request(app)
+            .post("/api/v1/profiles/companies/verify")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .attach("documents", Buffer.alloc(1024, "a"), "document.pdf")
+
+        const fileId = uploadRes.body[0].id
+        const res = await request(app)
+            .put(`/api/v1/profiles/companies/verify/${fileId}`)
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .attach("documents", Buffer.alloc(1024, "a"), "new_document.pdf")
+        
+        const dbCheck = await pool.query("SELECT * FROM company_verification_documents WHERE id=$1", [fileId])
+
+        expect(res.statusCode).toBe(200)
+        expect(dbCheck.rows[0].file_name).toBe("new_document.pdf")
+        expect(dbCheck.rows[0].file_path).toBe(res.body.file_path)
     })
 })

@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 
 const auth = require("../middleware/auth")
-const { uploadVerficationDocumentsMiddleware } = require("../middleware/upload/uploadVerification")
+const { uploadVerificationDocumentsMiddleware } = require("../middleware/upload/uploadVerification")
 const { uploadLogoMiddleware } = require("../middleware/upload/uploadLogo")
 const checkRole = require("../middleware/checkRole")
 const {
@@ -14,6 +14,9 @@ const {
     uploadCompanyVerificationDocs,
     getMyCompanyProfile,
     getCompanyProfileById,
+    getCompanyVerificationDocs,
+    deleteCompanyVerificationDocs,
+    editCompanyVerificationDoc,
 } = require("../controllers/profiles.controller")
 
 // routes:
@@ -58,7 +61,7 @@ router.get("/candidates/:id", readCandidateProfileById)
 // 2. check if user role is recruiter -> if not, return 403
 // 3. take input = {name, description, website, location} (all optional)
 // 4. update companies table with user_id -> if error, return 404 with json { error: "Company not found"} or 500
-// 5. return output = { name, verfication_status, description, website, location }
+// 5. return output = { name, verification_status, description, website, location }
 // *note: to update logo, use separate endpoint PUT /companies/logo
 router.put("/companies", auth, checkRole("recruiter"), updateCompanyProfile) // implemented in controllers/profiles.controller.js
 
@@ -78,7 +81,10 @@ router.put("/companies/logo", auth, checkRole("recruiter"), uploadLogoMiddleware
 // 4. save the uploaded files to disk and get the file paths -> if error, return 400 with json { error: "No files uploaded" } or { error: "Maximum number of files is 5"} or 500
 // 5. insert a new record into company_verification_documents table for each uploaded file with company_id (get from companies table using user_id) and file_path -> if error, return 404 with json { error: "Company not found"} or 500
 // 6. return output = [{ id, company_id, file_path, uploaded_at }]
-router.post("/companies/verify", auth, checkRole("recruiter"), uploadVerficationDocumentsMiddleware, uploadCompanyVerificationDocs)
+router.post("/companies/verify", auth, checkRole("recruiter"), uploadVerificationDocumentsMiddleware, uploadCompanyVerificationDocs)
+router.get("/companies/verify", auth, checkRole("recruiter"), getCompanyVerificationDocs)
+router.delete("/companies/verify", auth, checkRole("recruiter"), deleteCompanyVerificationDocs)
+router.put("/companies/verify/:id", auth, checkRole("recruiter"), uploadVerificationDocumentsMiddleware, editCompanyVerificationDoc)
 
 // GET /companies/my:
 // 1. verify access token and get user info from it -> if error, return 401

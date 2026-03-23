@@ -1,9 +1,17 @@
 const path = require("path")
 
 const pool = require("../../config/db")
-const { getProfile, updateProfile, storeLogoToDB, storeVerificationDocsToDB } = require("../services/profiles.services")
+const {
+    getProfile,
+    updateProfile,
+    storeLogoToDB,
+    storeVerificationDocsToDB,
+    getVerificationDocs,
+    deleteVerificationDocs,
+    editVerificationDoc,
+} = require("../services/profiles.services")
 const { isUUID } = require("../utils/validateUUID")
-const { upload } = require("../../config")
+const { upload, industries } = require("../../config")
 
 const getMyCandidateProfile = async (req, res, next) => {
     try {
@@ -68,6 +76,10 @@ const updateCompanyProfile = async (req, res, next) => {
             user_id: req.user.id,
         })
 
+        if (req?.body?.industry && !industries.includes(req?.body?.industry)) {
+            return res.status(400).json({ error: "Industry not included"})
+        }
+
         if (!result) {
             return res.status(404).json({ error: "Company not found" })
         }
@@ -120,6 +132,63 @@ const uploadCompanyVerificationDocs = async (req, res, next) => {
     }
 }
 
+const getCompanyVerificationDocs = async (req, res, next) => {
+    try {
+        const company = await pool.query(`SELECT id FROM companies WHERE user_id=$1`, [req.user.id])
+
+        if (company.rows.length === 0) {
+            return res.status(404).json({ error: "Company not found" })
+        }
+        
+        return res.json(await getVerificationDocs({ companyId: company.rows[0].id }))
+    } catch (err) {
+        next(err)
+    }
+}
+
+const deleteCompanyVerificationDocs = async (req, res, next) => {
+    try {
+        const { docs } = req.body
+
+        if (!docs || docs?.length === 0) {
+            return res.status(404).json({ error: "There must be at least a document" })
+        }
+
+        const company = await pool.query(`SELECT id FROM companies WHERE user_id=$1`, [req.user.id])
+
+        if (company.rows.length === 0) {
+            return res.status(404).json({ error: "Company not found" })
+        }
+
+        const totalFilesDeleted = await deleteVerificationDocs({ docs, company_id: company.rows[0].id })
+
+        return res.json({ "message": `Total files deleted are ${totalFilesDeleted}`})
+    } catch (err) {
+        next(err)
+    }
+}
+
+const editCompanyVerificationDoc = async (req, res, next) => {
+    try {
+        // if update name -> only change name in DB
+        // if update file -> change name, change path
+        const id = req.params.id
+        let file_name, file_path
+
+        if (req?.files) { //update file
+            const file = req.files[0]
+            file_name = file.originalname
+            file_path = file.path
+        } else {
+            file_name = req.body.file_name
+        }
+
+        return res.json(await editVerificationDoc({ id, file_name, file_path }))
+    } catch (err) {
+        next(err)
+    }
+}
+
 const getMyCompanyProfile = async (req, res, next) => {
     try {
         const profile = await getProfile({ profile_type: req.user.role, user_id: req.user.id })
@@ -155,6 +224,9 @@ module.exports = {
     updateCompanyProfile,
     updateCompanyLogo,
     uploadCompanyVerificationDocs,
+    getCompanyVerificationDocs,
+    deleteCompanyVerificationDocs,
+    editCompanyVerificationDoc,
     getMyCompanyProfile,
     getCompanyProfileById,
 }

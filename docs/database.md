@@ -1,5 +1,5 @@
 # Database Documentation
-> Auto-generated on 2026-03-22T16:05:39.698Z
+> Auto-generated on 2026-03-23T05:50:31.044Z
 
 ---
 
@@ -35,6 +35,41 @@
 
 - `applications_id_not_null`: `id IS NOT NULL`
 - `applications_cv_url_not_null`: `cv_url IS NOT NULL`
+
+---
+
+## bookmarked_jobs
+
+### Columns
+
+| Column        | Type      | Nullable | Default                                     |
+| ------------- | --------- | -------- | ------------------------------------------- |
+| id            | int       | NO       | nextval('bookmarked_jobs_id_seq'::regclass) |
+| user_id       | int       | NO       | -                                           |
+| job_id        | uuid      | NO       | -                                           |
+| bookmarked_at | timestamp | NO       | CURRENT_TIMESTAMP                           |
+
+### Primary Key
+- `id`
+
+### Foreign Keys
+
+| Column  | References | On Delete |
+| ------- | ---------- | --------- |
+| user_id | users(id)  | CASCADE   |
+| job_id  | jobs(id)   | CASCADE   |
+
+### Indexes
+
+- `bookmarked_jobs_pkey`: `CREATE UNIQUE INDEX bookmarked_jobs_pkey ON public.bookmarked_jobs USING btree (id)`
+- `unique_user_job`: `CREATE UNIQUE INDEX unique_user_job ON public.bookmarked_jobs USING btree (user_id, job_id)`
+
+### Constraints
+
+- `bookmarked_jobs_id_not_null`: `id IS NOT NULL`
+- `bookmarked_jobs_user_id_not_null`: `user_id IS NOT NULL`
+- `bookmarked_jobs_job_id_not_null`: `job_id IS NOT NULL`
+- `bookmarked_jobs_bookmarked_at_not_null`: `bookmarked_at IS NOT NULL`
 
 ---
 

@@ -71,16 +71,18 @@ const updateProfile = async ({ profile_type, data = {}, user_id }) => {
             [full_name, location, summary, user_id],
         )
     } else if (profile_type == 'recruiter') {
-        const { name, description, website, location } = data
+        const { name, description, website, location, industry } = data
+
         result = await pool.query(
             `UPDATE companies
             SET name = COALESCE(NULLIF($1,''), name),
             description = COALESCE(NULLIF($2,''), description),
             website = COALESCE(NULLIF($3,''), website),
-            location = COALESCE(NULLIF($4,''), location)
-            WHERE user_id = $5
+            location = COALESCE(NULLIF($4,''), location),
+            industry = COALESCE(NULLIF($5, ''), industry),
+            WHERE user_id = $6
             RETURNING name, verification_status, description, website, location`,
-            [name, description, website, location, user_id],
+            [name, description, website, location, industry, user_id,],
         )
     }
 
@@ -92,20 +94,70 @@ const storeLogoToDB = async ({ user_id, logoUrl }) => {
 }
 
 const storeVerificationDocsToDB = async ({ companyId, files }) => {
-    const values = files.map((_, i) => `($1, $${i * 2 + 2}, $${i * 2 + 3})`).join(", ")
+    const values = files.map((_, i) => `($1, $${i * 3 + 2}, $${i * 3 + 3}, $${i * 3 + 4})`).join(", ")
 
     const params = files.flatMap((f) => {
         const filePath = path.join(upload.base_path, `verification_docs/${f.filename}`)
         const documentType = path.extname(f.originalname).slice(1).toLowerCase()
-        return [filePath, documentType]
+        const fileName = f.originalname 
+
+        return [filePath, documentType, fileName]
     })
 
-    return (await pool.query(
-        `INSERT INTO company_verification_documents(company_id, file_path, document_type)
-        VALUES ${values}
-        RETURNING document_type, file_path`,
-        [companyId, ...params],
-    )).rows
+    return (
+        await pool.query(
+            `INSERT INTO company_verification_documents
+            (company_id, file_path, document_type, file_name)
+            VALUES ${values}
+            RETURNING id, document_type, file_path, file_name`,
+            [companyId, ...params],
+        )
+    ).rows
 }
 
-module.exports = { getProfile, updateProfile, storeLogoToDB, storeVerificationDocsToDB } 
+const getVerificationDocs = async ({ companyId }) => {
+    return (
+        await pool.query(
+            `SELECT id, file_name, file_path from company_verification_documents where company_id = $1`,
+            [companyId],
+        )
+    ).rows
+}
+
+const deleteVerificationDocs = async ({ docs, company_id }) => {
+    if (!docs || docs.length === 0) return 0
+
+    const result = await pool.query(
+        `DELETE FROM company_verification_documents
+         WHERE id = ANY($1)
+         AND company_id = $2
+         RETURNING id`,
+        [docs, company_id],
+    )
+
+    return result.rowCount
+}
+const editVerificationDoc = async ({ id, file_path, file_name }) => {
+    if (!id && !file_name) {
+        throw new Error("file id and file_name are required")
+    }
+
+    const query = `
+        UPDATE company_verification_documents
+        SET
+        file_name = COALESCE($1, file_name),
+        file_path = COALESCE($2, file_path)
+        WHERE id = $3
+        RETURNING id, file_name, file_path
+    `
+    const values = [file_name, file_path, id]
+    const result = await pool.query(query, values)
+
+    if (result.rows.length === 0) {
+        throw new Error("Verification document not found")
+    }
+
+    return result.rows[0] // returns the updated row
+}
+
+module.exports = { getProfile, updateProfile, storeLogoToDB, storeVerificationDocsToDB, getVerificationDocs, deleteVerificationDocs, editVerificationDoc } 
