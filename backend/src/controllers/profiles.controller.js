@@ -4,7 +4,9 @@ const pool = require("../../config/db")
 const {
     getProfile,
     updateProfile,
+    storeAvatarToDB,
     storeLogoToDB,
+    deleteAvatarFromDB,
     storeVerificationDocsToDB,
     getVerificationDocs,
     deleteVerificationDocs,
@@ -65,6 +67,32 @@ const readCandidateProfileById = async (req, res, next) => {
         next(err)
     }
 }
+
+const uploadCandidateAvatar = async (req, res, next) => {
+    try {
+        if (!req?.file) {
+            return res.status(400).json({ error: "No file uploaded" })
+        }
+
+        const avatarUrl = path.join(upload.base_path, `/avatars/${req.file.filename}`)
+    
+        await storeAvatarToDB({ user_id: req.user.id, avatarUrl })
+        
+        res.status(201).json({ avatarUrl })
+    } catch (err) {
+        next(err)
+    }
+}
+
+const deleteCandidateAvatar = async (req, res, next) => {
+    try {
+        await deleteAvatarFromDB({ user_id: req.user.id})
+        return res.json({ message: "Avatar removed!" })
+    } catch (err) {
+        next(err)
+    }
+}
+
 
 // ---- 2. recruiter --------------------
 // *note: to update logo, use function updateCompanyLogo
@@ -206,10 +234,6 @@ const getCompanyProfileById = async (req, res, next) => {
         if (!profile) {
             return res.status(404).json({ message: "Company not found" })
         }
-
-        if (profile.logo_url) {
-            profile.logo_url = `${req.protocol}://${req.get("host")}${profile.logo_url}`
-        }
         
         res.json(profile)
     } catch (err) {
@@ -221,6 +245,8 @@ module.exports = {
     getMyCandidateProfile,
     updateMyCandidateProfile,
     readCandidateProfileById,
+    uploadCandidateAvatar,
+    deleteCandidateAvatar,
     updateCompanyProfile,
     updateCompanyLogo,
     uploadCompanyVerificationDocs,

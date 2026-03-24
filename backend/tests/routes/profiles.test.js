@@ -142,6 +142,48 @@ describe("PUT /profiles/candidates", () => {
     })
 })
 
+describe("POST /profiles/candidates/my/avatar", () => {
+    test("upload avatar sucecssfully", async () => {
+        const email = generateTestingEmail()
+        await registerUser({ email })
+        const loginRes = await loginUser({ email })
+        const buf = Buffer.alloc(10 * 1024, "a")
+
+        const res = await request(app)
+            .post("/api/v1/profiles/candidates/my/avatar")
+            .set("User-Agent", "Jest Test Runner")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+            .attach("avatar", buf, "avatar.png")
+
+        const avatar_url = path.join("./", res.body.avatarUrl)
+        
+        fs.readFile(avatar_url, (err, data) => {
+            if (err) return console.error(err)
+            
+            expect(data.length).toBe(buf.length)
+            const isEqual = data.equals(buf)
+            expect(isEqual).toBe(true)
+        })
+    
+        expect(res.statusCode).toBe(201)
+    })
+})
+
+describe("DELETE /profiles/candidates/my/avatar", () => {
+    test("delete avatar sucecssfully", async () => {
+        const email = generateTestingEmail()
+        await registerUser({ email })
+        const loginRes = await loginUser({ email })
+
+        const res = await request(app)
+            .delete("/api/v1/profiles/candidates/my/avatar")
+            .set("User-Agent", "Jest Test Runner")
+            .set("Authorization", `Bearer ${loginRes.body.access_token}`)
+
+        expect(res.body).toStrictEqual({ message: "Avatar removed!" })
+    })
+})
+
 describe("GET /profiles/candidates/:id", () => {
     test("returns 404 for invalid UUID format", async () => {
         const res = await request(app).get("/api/v1/profiles/candidates/not-a-uuid").set("User-Agent", "Jest Test Runner")
@@ -222,7 +264,7 @@ describe("GET /profiles/companies/:id", () => {
                 description: "Hiring",
                 website: "https://acme.test",
                 location: "Bangkok",
-                logo_url: expect.stringMatching(/^http:\/\/127\.0\.0\.1:\d+\/uploads\/logos\/acme\.png$/),
+                logo_url: expect.stringMatching("/uploads/logos/acme.png"),
             }),
         )
     })

@@ -4,11 +4,14 @@ const router = express.Router()
 const auth = require("../middleware/auth")
 const { uploadVerificationDocumentsMiddleware } = require("../middleware/upload/uploadVerification")
 const { uploadLogoMiddleware } = require("../middleware/upload/uploadLogo")
+const { uploadAvatarMiddleware } = require("../middleware/upload/uploadAvatar")
 const checkRole = require("../middleware/checkRole")
 const {
     getMyCandidateProfile,
     updateMyCandidateProfile,
     readCandidateProfileById,
+    uploadCandidateAvatar,
+    deleteCandidateAvatar,
     updateCompanyProfile,
     updateCompanyLogo,
     uploadCompanyVerificationDocs,
@@ -16,7 +19,7 @@ const {
     getCompanyProfileById,
     getCompanyVerificationDocs,
     deleteCompanyVerificationDocs,
-    editCompanyVerificationDoc,
+    editCompanyVerificationDoc
 } = require("../controllers/profiles.controller")
 
 // routes:
@@ -39,6 +42,8 @@ const {
 // 2. query candidate_profiles table with user_id -> if error, return 500
 // 3. return output = {id, full_name, location, summary}
 router.get("/candidates/my", auth, checkRole("job_seeker"), getMyCandidateProfile)
+router.post("/candidates/my/avatar", auth, checkRole("job_seeker"), uploadAvatarMiddleware, uploadCandidateAvatar)
+router.delete("/candidates/my/avatar", auth, checkRole("job_seeker"), deleteCandidateAvatar)
 
 // PUT /candidates/:
 // 1. verify access token and get user info from it -> if error, return 401

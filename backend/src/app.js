@@ -14,6 +14,7 @@ const profileRoutes  = require('./routes/profiles');
 const cvRoutes       = require('./routes/cv');
 const rankingRouter  = require('./routes/ranking');
 const bookmarkRoutes = require('./routes/bookmark')
+const downloadRoutes = require('./routes/download')
 
 const app = express();
 
@@ -33,7 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(httpLogger);
-app.use(defaultLimiter);
+// app.use(defaultLimiter);
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")))
 app.use('/api/v1/auth',         authRoutes);
@@ -43,6 +44,7 @@ app.use('/api/v1/applications', appRoutes);
 app.use('/api/v1/profiles',     profileRoutes);
 app.use('/api/v1/cvs',          cvRoutes);
 app.use('/api/v1/bookmark/',   bookmarkRoutes)
+app.use('/api/v1/download/', downloadRoutes)
 
 app.use(errorHandler);
 

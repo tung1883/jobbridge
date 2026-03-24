@@ -236,9 +236,6 @@ router.get("/:id/company", async (req, res) => {
         }
 
         const company = result.rows[0]
-        if (company.logo_url) {
-            company.logo_url = `${req.protocol}://${req.get("host")}/uploads/${company.logo_url}`
-        }
 
         res.json(company)
     } catch (err) {
