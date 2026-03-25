@@ -37,14 +37,27 @@ router.get("/", async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 10
         const offset = (page - 1) * limit
         let values = []
+        // let query = `
+        //     SELECT *,
+        //     ${search ? `ts_rank(search_vector, plainto_tsquery('english', $1))` : `0`} AS rank
+        //     FROM jobs
+        //     WHERE 
+        //         (publishing_date IS NULL OR publishing_date <= NOW())
+        //     AND
+        //         (application_deadline IS NULL OR application_deadline >= NOW())
+        // `
+
         let query = `
-            SELECT *,
-            ${search ? `ts_rank(search_vector, plainto_tsquery('english', $1))` : `0`} AS rank
-            FROM jobs
+            SELECT j.*,
+            ${search ? `ts_rank(j.search_vector, plainto_tsquery('english', $1))` : `0`} AS rank,
+            c.name AS company_name
+            FROM jobs j
+            LEFT JOIN users u ON u.id = j.created_by
+            LEFT JOIN companies c ON c.user_id = u.id
             WHERE 
-                (publishing_date IS NULL OR publishing_date <= NOW())
+                (j.publishing_date IS NULL OR j.publishing_date <= NOW())
             AND
-                (application_deadline IS NULL OR application_deadline >= NOW())
+                (j.application_deadline IS NULL OR j.application_deadline >= NOW())
         `
 
         if (search && search.trim()) {
