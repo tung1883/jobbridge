@@ -15,7 +15,7 @@ const router = express.Router()
 // | PUT    | /api/v1/jobs/:id              |
 // | GET    | /api/v1/jobs/:id/company      |
 
-router.get("/my", auth, checkRole('recruiter'), async (req, res) => {
+router.get("/my", auth, checkRole('recruiter'), async (req, res, next) => {
     try {
         const result = await pool.query(
             `SELECT * FROM jobs
@@ -26,12 +26,11 @@ router.get("/my", auth, checkRole('recruiter'), async (req, res) => {
 
         res.json(result.rows)
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         const { search, location, job_type, minSalary, maxSalary } = req.query
         const page = parseInt(req.query.page) || 1
@@ -101,8 +100,7 @@ router.get("/", async (req, res) => {
             data: result.rows,
         })
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 
@@ -111,7 +109,7 @@ router.get("/", async (req, res) => {
 // 2. validate the job description
 // 3. check if company is verified
 // 4. add the job, return job
-router.post("/", auth, checkRole("recruiter"), validate(schemas.job), async (req, res) => {
+router.post("/", auth, checkRole("recruiter"), validate(schemas.job), async (req, res, next) => {
     try {
         const checkVerified = await getProfile({
             profile_type: "recruiter",
@@ -151,17 +149,12 @@ router.post("/", auth, checkRole("recruiter"), validate(schemas.job), async (req
 
         res.json(result.rows[0])
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 
-router.put("/:id", auth, async (req, res) => {
+router.put("/:id", auth, checkRole('recruiter'), async (req, res, next) => {
     try {
-        if (req.user.role !== "recruiter") {
-            return res.status(403).json({ message: "Forbidden" })
-        }
-
         const { id } = req.params
         const job = await pool.query("SELECT * FROM jobs WHERE id=$1", [id])
 
@@ -207,13 +200,71 @@ router.put("/:id", auth, async (req, res) => {
 
         res.json(result.rows[0])
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: "Server error" })
+        next(err)
+    }
+})
+
+router.delete("/:id", auth, checkRole('recruiter'), async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const job = await pool.query("SELECT * FROM jobs WHERE id=$1", [id])
+
+        if (job.rows.length === 0) {
+            return res.status(404).json({ message: "Job not found" })
+        }
+
+        if (job.rows[0].created_by !== req.user.id) {
+            return res.status(403).json({ message: "Not your job post" })
+        }
+
+        await pool.query(
+            `DELETE FROM jobs
+            WHERE id = $1`,
+            [id],
+        )
+
+        res.json({ message: "Job deleted"})
+    } catch (err) {
+        next(err)
+    }
+})
+
+// get job info 
+router.get("/:id/", async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const result = await pool.query(
+            `SELECT 
+                j.id,
+                j.title, 
+                j.description, 
+                j.responsibilities, 
+                j.required_qualifications, 
+                j.salary_min, 
+                j.salary_max, 
+                j.currency,
+                j.location AS job_location, 
+                j.job_type, 
+                j.publishing_date,
+                j.application_deadline
+            FROM jobs j
+            WHERE j.id = $1`,
+            [id],
+        )
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Job not found" })
+        }
+
+        return res.json(result.rows[0])
+    } catch (err) {
+        next(err)
     }
 })
 
 // this function is for when job_seeker see a job and wanna see the company info
-router.get("/:id/company", async (req, res) => {
+router.get("/:id/company", async (req, res, next) => {
     try {
         const { id } = req.params
 
@@ -239,8 +290,7 @@ router.get("/:id/company", async (req, res) => {
 
         res.json(company)
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 

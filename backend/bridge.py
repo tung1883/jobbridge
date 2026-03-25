@@ -1,4 +1,3 @@
-# bridge.py
 import sys
 import json
 from multiprocessing.connection import Client

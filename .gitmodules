@@ -1,3 +1,6 @@
 [submodule "frontend"]
 	path = frontend
 	url = https://github.com/tung1883/jobbridge-fe
+[submodule "resume-ranking"]
+	path = resume-ranking
+	url = https://github.com/tung1883/resume-ranking
