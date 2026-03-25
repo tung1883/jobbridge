@@ -7,5 +7,4 @@ conn = Client(("localhost", 8000))
 conn.send(data)
 result = conn.recv()
 conn.close()
-
 print(json.dumps(result))
