@@ -3,6 +3,7 @@ const pool = require("../../config/db")
 const auth = require("../middleware/auth")
 const router = express.Router()
 
+const { updateApplicantStatus } = require('./sse')
 const checkRole = require("../middleware/checkRole")
 
 // apply for a job
@@ -212,7 +213,9 @@ router.put("/:id/status", auth, checkRole("recruiter"), async (req, res, next) =
             return res.status(404).json({ message: "Application not found" })
         }
 
-        return res.json(result.rows[0])
+        const applicant = result.rows[0]
+        updateApplicantStatus(applicant) // send update to job_seeker using SSE
+        return res.json(applicant)
     } catch (err) {
         next(err)
     }
