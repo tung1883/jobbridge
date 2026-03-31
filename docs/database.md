@@ -1,5 +1,5 @@
 # Database Documentation
-> Auto-generated on 2026-03-23T05:50:31.044Z
+> Auto-generated on 2026-03-29T18:22:20.804Z
 
 ---
 
@@ -16,6 +16,8 @@
 | status     | text      | YES      | 'submitted'::text |
 | created_at | timestamp | YES      | now()             |
 | updated_at | timestamp | YES      | now()             |
+| cv_name    | text      | YES      | -                 |
+| cv_id      | uuid      | YES      | -                 |
 
 ### Primary Key
 - `id`
@@ -24,6 +26,7 @@
 
 | Column  | References | On Delete |
 | ------- | ---------- | --------- |
+| cv_id   | cvs(id)    | SET NULL  |
 | job_id  | jobs(id)   | CASCADE   |
 | user_id | users(id)  | CASCADE   |
 
@@ -85,6 +88,7 @@
 | location   | text      | YES      | -                 |
 | summary    | text      | YES      | -                 |
 | created_at | timestamp | YES      | CURRENT_TIMESTAMP |
+| avatar_url | text      | YES      | -                 |
 
 ### Primary Key
 - `id`
@@ -104,20 +108,24 @@
 
 ### Columns
 
-| Column              | Type      | Nullable | Default           |
-| ------------------- | --------- | -------- | ----------------- |
-| id                  | uuid      | NO       | gen_random_uuid() |
-| user_id             | int       | YES      | -                 |
-| name                | text      | YES      | -                 |
-| verification_status | text      | YES      | 'pending'::text   |
-| description         | text      | YES      | -                 |
-| website             | text      | YES      | -                 |
-| logo_url            | text      | YES      | -                 |
-| location            | text      | YES      | -                 |
-| created_at          | timestamp | YES      | CURRENT_TIMESTAMP |
-| industry            | text      | YES      | -                 |
+| Column              | Type      | Nullable | Default            |
+| ------------------- | --------- | -------- | ------------------ |
+| id                  | uuid      | NO       | gen_random_uuid()  |
+| user_id             | int       | YES      | -                  |
+| name                | text      | YES      | -                  |
+| verification_status | text      | YES      | 'unverified'::text |
+| description         | text      | YES      | -                  |
+| website             | text      | YES      | -                  |
+| logo_url            | text      | YES      | -                  |
+| location            | text      | YES      | -                  |
+| created_at          | timestamp | YES      | CURRENT_TIMESTAMP  |
+| industry            | text      | YES      | -                  |
+| company_size        | text      | YES      | -                  |
+| founded_year        | int       | YES      | -                  |
+| headquarters        | text      | YES      | -                  |
+| phone               | text      | YES      | -                  |
 
-### Primary Key
+### Primary Keys
 - `id`
 
 ### Foreign Keys
@@ -133,7 +141,8 @@
 
 ### Constraints
 
-- `companies_verification_status_check`: `(verification_status = ANY (ARRAY['pending'::text, 'verified'::text, 'rejected'::text]))`
+- `company_size_check`: `(company_size = ANY (ARRAY['1-10'::text, '11-50'::text, '51-200'::text, '201-500'::text, '500+'::text]))`
+- `companies_verification_status_check`: `(verification_status = ANY (ARRAY['pending'::text, 'verified'::text, 'rejected'::text, 'unverified'::text]))`
 - `companies_id_not_null`: `id IS NOT NULL`
 
 ---
@@ -183,6 +192,7 @@
 | file_name   | text      | YES      | -                 |
 | file_path   | text      | NO       | -                 |
 | uploaded_at | timestamp | YES      | CURRENT_TIMESTAMP |
+| created_at  | timestamp | YES      | CURRENT_TIMESTAMP |
 
 ### Primary Key
 - `id`
@@ -214,7 +224,7 @@
 | currency                | text      | YES      | -                 |
 | location                | text      | YES      | -                 |
 | job_type                | text      | YES      | -                 |
-| publishing_date         | timestamp | YES      | -                 |
+| publishing_date         | timestamp | YES      | now()             |
 | application_deadline    | timestamp | YES      | -                 |
 | created_by              | int       | YES      | -                 |
 | created_at              | timestamp | YES      | now()             |

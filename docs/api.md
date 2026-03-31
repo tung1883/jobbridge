@@ -1,16 +1,18 @@
 # API Documentation
-> Auto-generated on 2026-03-23T05:50:31.467Z
+> Auto-generated on 2026-03-29T18:22:21.111Z
 
 ---
 
 ## /api/v1/applications
 
-| Method | Path                            |
-| ------ | ------------------------------- |
-| POST   | /api/v1/applications            |
-| GET    | /api/v1/applications/my         |
-| GET    | /api/v1/applications/job/:jobId |
-| PUT    | /api/v1/applications/:id/status |
+| Method | Path                                 |
+| ------ | ------------------------------------ |
+| POST   | /api/v1/applications                 |
+| GET    | /api/v1/applications/my              |
+| PUT    | /api/v1/applications/:applicationId/ |
+| DELETE | /api/v1/applications/:applicationId/ |
+| GET    | /api/v1/applications/job/:jobId      |
+| PUT    | /api/v1/applications/:id/status      |
 
 ## /api/v1/auth
 
@@ -39,6 +41,13 @@
 | PUT    | /api/v1/cvs/:id |
 | DELETE | /api/v1/cvs/:id |
 
+## /api/v1/download
+
+| Method | Path                                 |
+| ------ | ------------------------------------ |
+| GET    | /api/v1/download/cv/:id              |
+| GET    | /api/v1/download/verification/:docId |
+
 ## /api/v1/jobs
 
 | Method | Path                     |
@@ -47,6 +56,8 @@
 | GET    | /api/v1/jobs             |
 | POST   | /api/v1/jobs             |
 | PUT    | /api/v1/jobs/:id         |
+| DELETE | /api/v1/jobs/:id         |
+| GET    | /api/v1/jobs/:id/        |
 | GET    | /api/v1/jobs/:id/company |
 
 ## /api/v1/profiles
@@ -54,6 +65,8 @@
 | Method | Path                                  |
 | ------ | ------------------------------------- |
 | GET    | /api/v1/profiles/candidates/my        |
+| POST   | /api/v1/profiles/candidates/my/avatar |
+| DELETE | /api/v1/profiles/candidates/my/avatar |
 | PUT    | /api/v1/profiles/candidates/          |
 | GET    | /api/v1/profiles/candidates/:id       |
 | PUT    | /api/v1/profiles/companies            |

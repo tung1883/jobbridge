@@ -3,13 +3,13 @@ const pool = require("../../config/db")
 const auth = require("../middleware/auth")
 const router = express.Router()
 
-router.post("/:jobId", auth, async (req, res) => {
+const checkRole = require("../middleware/checkRole")
+
+// POST /boomark/:jobId
+// for job_seeker to boomark jobs
+router.post("/:jobId", auth, checkRole('job_seeker'), async (req, res, next) => {
     try {
         const { jobId } = req.params
-
-        if (req.user.role !== "job_seeker") {
-            return res.status(403).json({ message: "Forbidden" })
-        }
 
         const result = await pool.query(
             `INSERT INTO bookmarked_jobs (user_id, job_id)
@@ -19,13 +19,15 @@ router.post("/:jobId", auth, async (req, res) => {
             [req.user.id, jobId],
         )
 
-        res.json(result.rows[0] || { message: "Already saved" })
+        return res.json(result.rows[0] || { message: "Already saved" })
     } catch (err) {
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 
-router.delete("/:jobId", auth, async (req, res) => {
+// DELETE /boomark/:jobId
+// for job_seeker to delete a job from bookmarkt list
+router.delete("/:jobId", auth, checkRole('job_seeker'), async (req, res, next) => {
     try {
         const { jobId } = req.params
 
@@ -35,20 +37,19 @@ router.delete("/:jobId", auth, async (req, res) => {
             [req.user.id, jobId],
         )
 
-        res.json({ message: "Removed" })
+        return res.json({ message: "Removed" })
     } catch (err) {
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 
-router.get("/", auth, async (req, res) => {
+// GET /boomark/
+// for job_seeker to get their bookmark list (+ job.* + company.name and .description)
+router.get("/", auth, checkRole('job_seeker'), async (req, res, next) => {
     try {
         const result = await pool.query(
             `SELECT 
-                j.id,
-                j.title,
-                j.location,
-                j.created_at,
+                j.*,
                 c.name AS company_name,
                 c.description AS company_description
             FROM bookmarked_jobs s
@@ -59,10 +60,9 @@ router.get("/", auth, async (req, res) => {
             [req.user.id],
         )
 
-        res.json(result.rows)
+        return res.json(result.rows)
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: "Server error" })
+        next(err)
     }
 })
 

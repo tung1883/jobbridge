@@ -5,7 +5,7 @@ const router = express.Router()
 const pool = require("../../config/db")
 const auth = require("../middleware/auth")
 
-function sendFileOrNotFound(res, filePath, downloadName) {
+const sendFile = (res, filePath, downloadName) => {
     const resolved = path.resolve(filePath)
 
     if (!fs.existsSync(resolved)) {
@@ -29,7 +29,7 @@ router.get("/cv/:id", auth, async (req, res) => {
             return res.status(403).json({ error: "You don't have permission to download this CV" })
         }
 
-        sendFileOrNotFound(res, cv.file_path, cv.file_name)
+        sendFile(res, cv.file_path, cv.file_name)
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: "Server error" })
@@ -51,7 +51,7 @@ router.get("/verification/:docId", auth, async (req, res) => {
 
         const doc = docResult.rows[0]
 
-        // Admins can access any doc; recruiters only their own
+        // admins can access any doc; recruiters only their own
         if (req.user.role !== "admin") {
             const companyResult = await pool.query(`SELECT id FROM companies WHERE user_id = $1`, [req.user.id])
 
@@ -60,7 +60,7 @@ router.get("/verification/:docId", auth, async (req, res) => {
             }
         }
 
-        sendFileOrNotFound(res, doc.file_path, doc.file_name)
+        sendFile(res, doc.file_path, doc.file_name)
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: "Server error" })

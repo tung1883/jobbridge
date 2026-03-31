@@ -7,7 +7,7 @@ const { isUUID } = require("../utils/validateUUID")
 
 const PROFILE_TABLES = ["candidate_profiles", "companies"]
 const candidate_cols = ["id", "full_name", "location", "summary", "avatar_url"]
-const company_cols = ["id", "name", "description", "website", "location", "logo_url", "verification_status"]
+const company_cols = ["id", "name", "description", "website", "location", "logo_url", "verification_status", "industry", "company_size", "founded_year", "phone"]
 
 const getProfile = async ({ profile_type, excludedColumns = [], user_id, profile_id = null }) => {
     try {
@@ -67,7 +67,7 @@ const updateProfile = async ({ profile_type, data = {}, user_id }) => {
             [full_name, location, summary, user_id],
         )
     } else if (profile_type == "recruiter") {
-        const { name, description, website, location, industry } = data
+        const { name, description, website, location, industry, company_size } = data
 
         result = await pool.query(
             `UPDATE companies
@@ -75,10 +75,11 @@ const updateProfile = async ({ profile_type, data = {}, user_id }) => {
             description = COALESCE(NULLIF($2,''), description),
             website = COALESCE(NULLIF($3,''), website),
             location = COALESCE(NULLIF($4,''), location),
-            industry = COALESCE(NULLIF($5, ''), industry)
-            WHERE user_id = $6
-            RETURNING name, verification_status, description, website, location`,
-            [name, description, website, location, industry, user_id],
+            industry = COALESCE(NULLIF($5, ''), industry),
+            company_size = COALESCE(NULLIF($6, ''), company_size)
+            WHERE user_id = $7
+            RETURNING name, verification_status, description, website, location, industry, company_size`,
+            [name, description, website, location, industry, company_size, user_id],
         )
     }
 

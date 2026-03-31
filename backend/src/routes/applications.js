@@ -173,18 +173,20 @@ router.get("/job/:jobId", auth, checkRole("recruiter"), async (req, res, next) =
 
         const result = await pool.query(
             `SELECT 
-                a.id,
-                a.status,
-                a.cv_url,
-                a.created_at,
-                u.email
+            a.id,
+            a.status,
+            a.cv_url,
+            a.created_at,
+            a.user_id,
+            u.email,
+            cp.id as profile_id
             FROM applications a
             JOIN users u ON a.user_id = u.id
+            LEFT JOIN candidate_profiles cp ON cp.user_id = u.id
             WHERE a.job_id = $1
             ORDER BY a.created_at DESC`,
             [jobId],
         )
-
         return res.json(result.rows)
     } catch (err) {
         next(err)

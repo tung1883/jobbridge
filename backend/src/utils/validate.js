@@ -1,7 +1,5 @@
 const Joi = require("joi")
 
-const HTML_TAG_REGEX = /<\/?[a-z][\s\S]*>/i
-
 const validate = (schema) => (req, res, next) => {
     const { error } = schema.validate(req.body, { abortEarly: false })
     if (error) {
@@ -61,8 +59,6 @@ const humanText = Joi.extend((joi) => ({
                     return helpers.error("humanText.notHuman")
                 }
 
-        
-                // console.log('sanitized')
                 return sanitized // safe output
             },
         },

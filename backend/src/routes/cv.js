@@ -5,7 +5,7 @@ const pool = require("../../config/db")
 const auth = require("../middleware/auth")
 const upload = require("../middleware/upload/uploadCV")
 
-router.post("/", auth, upload.single("cv"), async (req, res) => {
+router.post("/", auth, upload.single("cv"), async (req, res, next) => {
     try {
         const userId = req.user.id
         const fileName = req.file.originalname
@@ -24,7 +24,7 @@ router.post("/", auth, upload.single("cv"), async (req, res) => {
     }
 })
 
-router.get("/", auth, async (req, res) => {
+router.get("/", auth, async (req, res, next) => {
     try {
         const userId = req.user.id
         const result = await pool.query(
@@ -40,7 +40,7 @@ router.get("/", auth, async (req, res) => {
     }
 })
 
-router.get("/:id", auth, async (req, res) => {
+router.get("/:id", auth, async (req, res, next) => {
     const cvId = req.params.id
     const result = await pool.query(`SELECT * FROM cvs WHERE id=$1`, [cvId])
 
@@ -51,7 +51,7 @@ router.get("/:id", auth, async (req, res) => {
     return res.sendFile(result.rows[0].file_path, { root: "." })
 })
 
-router.put("/:id", auth, upload.single("cv"), async (req, res) => {
+router.put("/:id", auth, upload.single("cv"), async (req, res, next) => {
     const cvId = req.params.id
     const fileName = req.file.originalname
     const filePath = req.file.path
@@ -70,7 +70,7 @@ router.put("/:id", auth, upload.single("cv"), async (req, res) => {
 
 // *note: DELETE will just values in cvs, not the stored in file so that applications still working correctly
 // if the cv is not in any applications, it will be deleted by cron worker
-router.delete("/:id", auth, async (req, res) => {
+router.delete("/:id", auth, async (req, res, next) => {
     try {
         const cvId = req.params.id
         const result = await pool.query(`SELECT file_path FROM cvs WHERE id=$1`, [cvId])

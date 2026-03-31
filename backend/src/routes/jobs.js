@@ -37,15 +37,6 @@ router.get("/", async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 10
         const offset = (page - 1) * limit
         let values = []
-        // let query = `
-        //     SELECT *,
-        //     ${search ? `ts_rank(search_vector, plainto_tsquery('english', $1))` : `0`} AS rank
-        //     FROM jobs
-        //     WHERE 
-        //         (publishing_date IS NULL OR publishing_date <= NOW())
-        //     AND
-        //         (application_deadline IS NULL OR application_deadline >= NOW())
-        // `
 
         let query = `
             SELECT j.*,
@@ -282,13 +273,7 @@ router.get("/:id/company", async (req, res, next) => {
         const { id } = req.params
 
         const result = await pool.query(
-            `SELECT 
-            c.id,
-            c.name,
-            c.description,
-            c.website,
-            c.location,
-            c.logo_url
+            `SELECT c.*
             FROM jobs j
             JOIN companies c ON j.created_by = c.user_id
             WHERE j.id = $1`,
