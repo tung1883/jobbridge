@@ -2,6 +2,8 @@
 
 A job recruitment platform connecting job seekers with recruiters and companies.
 
+* Note: This repo is deprecated, check https://github.com/hasoftware/JobBridge for the newest version
+
 ## Overview
 
 JobBridge allows:
